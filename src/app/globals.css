@@ -1,0 +1,100 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap');
+
+:root {
+  --gold: #e4a44e;
+  --gold-light: #fdf8ef;
+  --charcoal: #1a1a1a;
+}
+
+body {
+  font-family: 'Inter', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.font-display {
+  font-family: 'Playfair Display', Georgia, serif;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f5f5f0;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #d1d1d1;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #b0b0b0;
+}
+
+/* Animations */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.6s ease-out forwards;
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.animate-shimmer {
+  background: linear-gradient(90deg, transparent 0%, rgba(228, 164, 78, 0.1) 50%, transparent 100%);
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite;
+}
+
+/* Input styles */
+.input-luxury {
+  @apply w-full px-4 py-3.5 bg-white border border-charcoal-200 rounded-lg
+         text-charcoal-900 placeholder:text-charcoal-400
+         focus:outline-none focus:ring-2 focus:ring-gold-400/30 focus:border-gold-400
+         transition-all duration-200;
+}
+
+.input-luxury:hover {
+  @apply border-charcoal-300;
+}
+
+/* Button styles */
+.btn-primary {
+  @apply px-8 py-3.5 bg-charcoal-900 text-white font-medium rounded-lg
+         hover:bg-charcoal-800 active:bg-charcoal-950
+         focus:outline-none focus:ring-2 focus:ring-charcoal-900/30
+         transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed;
+}
+
+.btn-gold {
+  @apply px-8 py-3.5 bg-gold-500 text-white font-medium rounded-lg
+         hover:bg-gold-600 active:bg-gold-700
+         focus:outline-none focus:ring-2 focus:ring-gold-400/30
+         transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed;
+}
+
+.btn-outline {
+  @apply px-8 py-3.5 bg-transparent border-2 border-charcoal-900 text-charcoal-900 font-medium rounded-lg
+         hover:bg-charcoal-900 hover:text-white
+         focus:outline-none focus:ring-2 focus:ring-charcoal-900/30
+         transition-all duration-200;
+}

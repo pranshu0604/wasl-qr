@@ -1,0 +1,28 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Attendee {
+  id          String   @id @default(cuid())
+  firstName   String
+  lastName    String
+  email       String   @unique
+  phone       String
+  company     String?
+  designation String?
+  qrToken     String   @unique @default(cuid())
+  checkedIn   Boolean  @default(false)
+  checkedInAt DateTime?
+  source      String   @default("online") // online, manual, import
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([email])
+  @@index([qrToken])
+  @@index([checkedIn])
+}
