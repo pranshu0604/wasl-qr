@@ -19,14 +19,13 @@ export async function GET(
       );
     }
 
+    // Email and phone intentionally omitted — endpoint is public (token in QR URL)
     return NextResponse.json({
       valid: true,
       attendee: {
         id: attendee.id,
         firstName: attendee.firstName,
         lastName: attendee.lastName,
-        email: attendee.email,
-        phone: attendee.phone,
         company: attendee.company,
         designation: attendee.designation,
         checkedIn: attendee.checkedIn,

@@ -1,36 +1,57 @@
 import { NextRequest, NextResponse } from "next/server";
+import { verifySessionToken } from "@/lib/session";
 
-// In production, ADMIN_SECRETS env var MUST be set in Vercel dashboard.
-// In local dev it falls back to defaults so login still works.
-const fallback = process.env.NODE_ENV === "production" ? "" : "yatharth,adwait";
+// Fail closed: if ADMIN_SECRETS is not set, no password is valid.
+// Never falls back to hardcoded defaults — misconfiguration means no access.
 const ADMIN_PASSWORDS = new Set(
-  (process.env.ADMIN_SECRETS || fallback).split(",").map((p) => p.trim()).filter(Boolean)
+  (process.env.ADMIN_SECRETS ?? "")
+    .split(",")
+    .map((p) => p.trim())
+    .filter(Boolean)
 );
 
+function isValidAdminSession(req: NextRequest): boolean {
+  // Browser sessions: verify the HMAC-signed cookie (never stores raw password)
+  const cookie = req.cookies.get("admin_session")?.value;
+  if (cookie) {
+    try {
+      const secret = verifySessionToken(cookie);
+      if (secret && ADMIN_PASSWORDS.has(secret)) return true;
+    } catch {
+      // SESSION_SECRET not configured or token tampered — deny
+    }
+  }
+
+  // Script / API access: accept raw secret via header (for CLI tools / scripts)
+  const header = req.headers.get("x-admin-secret");
+  if (header && ADMIN_PASSWORDS.has(header)) return true;
+
+  return false;
+}
+
 const PROTECTED_API_ROUTES = [
-  "/api/attendees", "/api/checkin", "/api/import", "/api/manual-entry",
-  "/api/resend-qr", "/api/toggle-checkin",
-  "/api/self-checkin", // kiosk no longer uses this — block unauthenticated callers
+  "/api/attendees",
+  "/api/checkin",
+  "/api/import",
+  "/api/manual-entry",
+  "/api/resend-qr",
+  "/api/toggle-checkin",
+  "/api/self-checkin",
 ];
 
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
-  // Protect admin pages — always require admin_secret cookie
+  // Protect admin UI pages
   if (pathname.startsWith("/admin")) {
-    const cookie = req.cookies.get("admin_secret")?.value;
-    if (!cookie || !ADMIN_PASSWORDS.has(cookie)) {
-      const loginUrl = new URL("/login", req.url);
-      return NextResponse.redirect(loginUrl);
+    if (!isValidAdminSession(req)) {
+      return NextResponse.redirect(new URL("/login", req.url));
     }
   }
 
-  // Protect admin API routes — require admin_secret cookie or x-admin-secret header
+  // Protect admin API routes
   if (PROTECTED_API_ROUTES.some((r) => pathname.startsWith(r))) {
-    const cookie = req.cookies.get("admin_secret")?.value;
-    const header = req.headers.get("x-admin-secret");
-
-    if ((!cookie || !ADMIN_PASSWORDS.has(cookie)) && (!header || !ADMIN_PASSWORDS.has(header))) {
+    if (!isValidAdminSession(req)) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
   }
@@ -41,8 +62,12 @@ export function middleware(req: NextRequest) {
 export const config = {
   matcher: [
     "/admin/:path*",
-    "/api/attendees/:path*", "/api/checkin/:path*", "/api/import/:path*",
-    "/api/manual-entry/:path*", "/api/resend-qr", "/api/toggle-checkin",
+    "/api/attendees/:path*",
+    "/api/checkin/:path*",
+    "/api/import/:path*",
+    "/api/manual-entry/:path*",
+    "/api/resend-qr",
+    "/api/toggle-checkin",
     "/api/self-checkin",
   ],
 };
