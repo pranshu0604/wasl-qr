@@ -12,6 +12,7 @@ interface CheckinResult {
 export default function ScanPage() {
   const [scanning, setScanning] = useState(false);
   const [result, setResult] = useState<CheckinResult | null>(null);
+  const [startError, setStartError] = useState<string | null>(null);
 
   // useRef instead of useState — the scanner library holds a stale reference to
   // the callback passed at start() time, so useState would always read the old
@@ -37,7 +38,7 @@ export default function ScanPage() {
       }
 
       if (!token) {
-        setResult({ type: "error", name: "", message: "Invalid QR code — nothing to scan." });
+        setResult({ type: "error", name: "", message: "Invalid QR code." });
         setTimeout(() => { setResult(null); processingRef.current = false; }, 4000);
         return;
       }
@@ -51,7 +52,7 @@ export default function ScanPage() {
       const data = await res.json();
 
       if (res.status === 404) {
-        setResult({ type: "error", name: "", message: "QR code not found. Use Manual Entry." });
+        setResult({ type: "error", name: "", message: "QR not found. Use Manual Entry." });
       } else if (!res.ok) {
         setResult({ type: "error", name: "", message: data.error || "Check-in failed." });
       } else if (data.alreadyCheckedIn) {
@@ -76,21 +77,30 @@ export default function ScanPage() {
 
   const startScanner = useCallback(async () => {
     if (!readerRef.current) return;
+    setStartError(null);
     try {
       // Dynamic import — html5-qrcode accesses window/document at module load
-      // time which crashes Next.js SSR on Vercel. Import only on button click.
+      // time which crashes Next.js SSR. Import only on button click (browser only).
       const { Html5Qrcode } = await import("html5-qrcode");
       const scanner = new Html5Qrcode("qr-reader");
       scannerRef.current = scanner;
       await scanner.start(
         { facingMode: "environment" },
-        { fps: 10, qrbox: { width: 260, height: 260 } },
+        { fps: 10, qrbox: { width: 250, height: 250 } },
         handleScan,
-        () => {} // ignore individual frame errors
+        () => {} // ignore per-frame decode failures
       );
       setScanning(true);
-    } catch {
-      setResult({ type: "error", name: "", message: "Camera access denied. Enable camera permissions and try again." });
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      if (msg.toLowerCase().includes("permission") || msg.toLowerCase().includes("denied") || msg.toLowerCase().includes("notallowed")) {
+        setStartError("Camera access denied. Please allow camera permissions and try again.");
+      } else if (msg.toLowerCase().includes("camera") || msg.toLowerCase().includes("device")) {
+        setStartError("No camera found. Make sure your device has a camera.");
+      } else {
+        setStartError("Could not start scanner. Please try again or use Manual Entry.");
+      }
+      scannerRef.current = null;
     }
   }, [handleScan]);
 
@@ -103,6 +113,7 @@ export default function ScanPage() {
       scannerRef.current = null;
     }
     setScanning(false);
+    processingRef.current = false;
   }, []);
 
   // Cleanup on unmount
@@ -110,6 +121,7 @@ export default function ScanPage() {
     return () => {
       if (scannerRef.current) {
         scannerRef.current.stop().catch(() => {});
+        scannerRef.current = null;
       }
     };
   }, []);
@@ -128,19 +140,20 @@ export default function ScanPage() {
       </div>
 
       <div className="bg-white rounded-2xl border border-[#e8e2d5] overflow-hidden">
-        <div className="p-6">
+        <div className="p-4 sm:p-6">
+          {/* Camera viewport */}
           <div
             ref={readerRef}
             id="qr-reader"
             className="w-full aspect-square bg-[#0a0a0a] rounded-xl overflow-hidden relative"
           >
             {!scanning && (
-              <div className="absolute inset-0 flex flex-col items-center justify-center gap-5">
-                <div className="absolute top-8 left-8 w-8 h-8 border-t-2 border-l-2 border-[#c4952a]/30 rounded-tl" />
-                <div className="absolute top-8 right-8 w-8 h-8 border-t-2 border-r-2 border-[#c4952a]/30 rounded-tr" />
-                <div className="absolute bottom-8 left-8 w-8 h-8 border-b-2 border-l-2 border-[#c4952a]/30 rounded-bl" />
-                <div className="absolute bottom-8 right-8 w-8 h-8 border-b-2 border-r-2 border-[#c4952a]/30 rounded-br" />
-                <svg className="w-14 h-14 text-white/[0.08]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
+              <div className="absolute inset-0 flex flex-col items-center justify-center gap-5 pointer-events-none">
+                <div className="absolute top-6 left-6 sm:top-8 sm:left-8 w-7 h-7 sm:w-8 sm:h-8 border-t-2 border-l-2 border-[#c4952a]/30 rounded-tl" />
+                <div className="absolute top-6 right-6 sm:top-8 sm:right-8 w-7 h-7 sm:w-8 sm:h-8 border-t-2 border-r-2 border-[#c4952a]/30 rounded-tr" />
+                <div className="absolute bottom-6 left-6 sm:bottom-8 sm:left-8 w-7 h-7 sm:w-8 sm:h-8 border-b-2 border-l-2 border-[#c4952a]/30 rounded-bl" />
+                <div className="absolute bottom-6 right-6 sm:bottom-8 sm:right-8 w-7 h-7 sm:w-8 sm:h-8 border-b-2 border-r-2 border-[#c4952a]/30 rounded-br" />
+                <svg className="w-12 h-12 sm:w-14 sm:h-14 text-white/[0.08]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 013.75 9.375v-4.5zM3.75 14.625c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5a1.125 1.125 0 01-1.125-1.125v-4.5zM13.5 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 0113.5 9.375v-4.5z" />
                 </svg>
                 <p className="text-white/20 text-sm tracking-wide">Camera inactive</p>
@@ -148,11 +161,18 @@ export default function ScanPage() {
             )}
           </div>
 
+          {/* Start error message */}
+          {startError && (
+            <div className="mt-3 px-4 py-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
+              {startError}
+            </div>
+          )}
+
           <div className="mt-4">
             {!scanning ? (
               <button
                 onClick={startScanner}
-                className="w-full bg-[#c4952a] text-white text-sm font-medium py-3.5 rounded-lg hover:bg-[#d4a844] transition-colors flex items-center justify-center gap-2.5"
+                className="w-full bg-[#c4952a] text-white text-sm font-medium py-3.5 rounded-lg hover:bg-[#d4a844] active:bg-[#b8841f] transition-colors flex items-center justify-center gap-2.5"
               >
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z" />
@@ -163,7 +183,7 @@ export default function ScanPage() {
             ) : (
               <button
                 onClick={stopScanner}
-                className="w-full bg-[#0a0a0a] text-white text-sm font-medium py-3.5 rounded-lg hover:bg-[#1a1a1a] transition-colors"
+                className="w-full bg-[#0a0a0a] text-white text-sm font-medium py-3.5 rounded-lg hover:bg-[#1a1a1a] active:bg-[#2a2a2a] transition-colors"
               >
                 Stop Scanner
               </button>
@@ -171,10 +191,11 @@ export default function ScanPage() {
           </div>
         </div>
 
+        {/* Scan result banner */}
         {result && (
-          <div className={`p-5 border-t animate-fade-in ${resultStyles[result.type].wrap}`}>
-            <div className="flex items-start gap-4">
-              <div className={`w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 ${resultStyles[result.type].iconBg}`}>
+          <div className={`p-4 sm:p-5 border-t ${resultStyles[result.type].wrap}`}>
+            <div className="flex items-start gap-3 sm:gap-4">
+              <div className={`w-10 h-10 sm:w-11 sm:h-11 rounded-xl flex items-center justify-center flex-shrink-0 ${resultStyles[result.type].iconBg}`}>
                 {result.type === "success" ? (
                   <svg className={`w-5 h-5 ${resultStyles[result.type].icon}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />

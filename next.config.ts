@@ -11,6 +11,18 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   eslint: { ignoreDuringBuilds: true },
+
+  // html5-qrcode is browser-only — keep it out of server/edge bundles entirely.
+  // It is already dynamically imported inside a click handler in the scan page,
+  // but this ensures no accidental server-side bundling.
+  webpack: (config, { isServer }) => {
+    if (isServer) {
+      const existing = Array.isArray(config.externals) ? config.externals : [];
+      config.externals = [...existing, "html5-qrcode"];
+    }
+    return config;
+  },
+
   async headers() {
     return [{ source: "/(.*)", headers: securityHeaders }];
   },

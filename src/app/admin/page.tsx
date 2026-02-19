@@ -491,28 +491,28 @@ export default function AdminDashboard() {
     <div className="space-y-6">
 
       {/* ─── Stats ─── */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-[#0a0a0a] rounded-2xl p-6 relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-24 h-24 bg-[#c4952a]/5 rounded-full -translate-y-8 translate-x-8" />
-          <p className="text-white/35 text-[10px] font-semibold tracking-[0.2em] uppercase mb-2">Total Registered</p>
-          <p className="font-display text-white text-4xl">{stats.total.toLocaleString()}</p>
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        <div className="bg-[#0a0a0a] rounded-xl sm:rounded-2xl p-4 sm:p-6 relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-20 h-20 sm:w-24 sm:h-24 bg-[#c4952a]/5 rounded-full -translate-y-6 translate-x-6 sm:-translate-y-8 sm:translate-x-8" />
+          <p className="text-white/35 text-[9px] sm:text-[10px] font-semibold tracking-[0.15em] sm:tracking-[0.2em] uppercase mb-1.5 sm:mb-2">Total</p>
+          <p className="font-display text-white text-3xl sm:text-4xl">{stats.total.toLocaleString()}</p>
         </div>
 
-        <div className="bg-white rounded-2xl p-6 border border-[#e8e2d5] relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-24 h-24 bg-green-50 rounded-full -translate-y-8 translate-x-8" />
-          <p className="text-[#8a7f6e] text-[10px] font-semibold tracking-[0.2em] uppercase mb-2">Checked In</p>
-          <p className="font-display text-green-600 text-4xl">{stats.checkedIn.toLocaleString()}</p>
+        <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 border border-[#e8e2d5] relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-20 h-20 sm:w-24 sm:h-24 bg-green-50 rounded-full -translate-y-6 translate-x-6 sm:-translate-y-8 sm:translate-x-8" />
+          <p className="text-[#8a7f6e] text-[9px] sm:text-[10px] font-semibold tracking-[0.15em] sm:tracking-[0.2em] uppercase mb-1.5 sm:mb-2">Checked In</p>
+          <p className="font-display text-green-600 text-3xl sm:text-4xl">{stats.checkedIn.toLocaleString()}</p>
         </div>
 
-        <div className="bg-white rounded-2xl p-6 border border-[#e8e2d5] relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-24 h-24 bg-[#fdf3e0] rounded-full -translate-y-8 translate-x-8" />
-          <p className="text-[#8a7f6e] text-[10px] font-semibold tracking-[0.2em] uppercase mb-2">Pending</p>
-          <p className="font-display text-[#c4952a] text-4xl">{stats.pending.toLocaleString()}</p>
+        <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 border border-[#e8e2d5] relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-20 h-20 sm:w-24 sm:h-24 bg-[#fdf3e0] rounded-full -translate-y-6 translate-x-6 sm:-translate-y-8 sm:translate-x-8" />
+          <p className="text-[#8a7f6e] text-[9px] sm:text-[10px] font-semibold tracking-[0.15em] sm:tracking-[0.2em] uppercase mb-1.5 sm:mb-2">Pending</p>
+          <p className="font-display text-[#c4952a] text-3xl sm:text-4xl">{stats.pending.toLocaleString()}</p>
         </div>
 
-        <div className="bg-white rounded-2xl p-6 border border-[#e8e2d5]">
-          <p className="text-[#8a7f6e] text-[10px] font-semibold tracking-[0.2em] uppercase mb-2">Check-in Rate</p>
-          <p className="font-display text-[#0a0a0a] text-4xl mb-3">{checkedInPercent}%</p>
+        <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 border border-[#e8e2d5]">
+          <p className="text-[#8a7f6e] text-[9px] sm:text-[10px] font-semibold tracking-[0.15em] sm:tracking-[0.2em] uppercase mb-1.5 sm:mb-2">Check-in Rate</p>
+          <p className="font-display text-[#0a0a0a] text-3xl sm:text-4xl mb-2 sm:mb-3">{checkedInPercent}%</p>
           <div className="w-full bg-[#f0ead8] rounded-full h-1.5 overflow-hidden">
             <div
               className="bg-[#c4952a] h-1.5 rounded-full transition-all duration-700"
@@ -523,7 +523,7 @@ export default function AdminDashboard() {
       </div>
 
       {/* ─── Actions Bar ─── */}
-      <div className="bg-white rounded-2xl p-5 border border-[#e8e2d5]">
+      <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-5 border border-[#e8e2d5]">
         <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
           <div className="relative flex-1 min-w-0">
             <svg className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#a89e8a]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -575,8 +575,76 @@ export default function AdminDashboard() {
       </div>
 
       {/* ─── Table ─── */}
-      <div className="bg-white rounded-2xl border border-[#e8e2d5] overflow-hidden">
-        <div className="overflow-x-auto">
+      <div className="bg-white rounded-xl sm:rounded-2xl border border-[#e8e2d5] overflow-hidden">
+
+        {/* Mobile card list — shown only on small screens */}
+        <div className="sm:hidden">
+          {loading ? (
+            <div className="px-4 py-12 flex items-center justify-center gap-3 text-[#a89e8a]">
+              <div className="w-5 h-5 border-2 border-[#c4952a]/30 border-t-[#c4952a] rounded-full animate-spin" />
+              <span className="text-sm">Loading...</span>
+            </div>
+          ) : attendees.length === 0 ? (
+            <div className="px-4 py-12 text-center text-sm text-[#a89e8a]">No attendees found.</div>
+          ) : (
+            <div className="divide-y divide-[#f5f0e8]">
+              {attendees.map((a) => (
+                <div
+                  key={a.id}
+                  onClick={() => setSelectedAttendee(a)}
+                  className="px-4 py-3.5 cursor-pointer hover:bg-[#fdf9f4] active:bg-[#faf5ec] transition-colors"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="font-medium text-[#0a0a0a] text-sm truncate">{a.firstName} {a.lastName}</p>
+                      <p className="text-xs text-[#8a7f6e] truncate mt-0.5">{a.email}</p>
+                      <p className="text-xs text-[#a89e8a] mt-0.5">{a.phone}{a.company ? ` · ${a.company}` : ""}</p>
+                    </div>
+                    <div className="flex items-center gap-2 flex-shrink-0 mt-0.5">
+                      {a.checkedIn ? (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-green-50 text-green-600 border border-green-200 whitespace-nowrap">
+                          <span className="w-1 h-1 bg-green-500 rounded-full" />In
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[#fdf3e0] text-[#c4952a] border border-[#c4952a]/25 whitespace-nowrap">
+                          <span className="w-1 h-1 bg-[#c4952a] rounded-full" />Pending
+                        </span>
+                      )}
+                      <button
+                        onClick={(e) => handleQuickToggle(e, a.id)}
+                        disabled={toggleLoadingId === a.id}
+                        title={a.checkedIn ? "Uncheck" : "Check In"}
+                        className={`p-1.5 rounded-lg border transition-all disabled:opacity-50 ${
+                          a.checkedIn
+                            ? "border-red-200 text-red-500 hover:bg-red-50"
+                            : "border-green-200 text-green-600 hover:bg-green-50"
+                        }`}
+                      >
+                        {toggleLoadingId === a.id ? (
+                          <svg className="animate-spin h-3.5 w-3.5" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                          </svg>
+                        ) : a.checkedIn ? (
+                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                        ) : (
+                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                          </svg>
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Desktop table — hidden on mobile */}
+        <div className="hidden sm:block overflow-x-auto">
           <table className="w-full">
             <thead>
               <tr className="border-b border-[#f0e8d8]">
@@ -685,7 +753,7 @@ export default function AdminDashboard() {
               )}
             </tbody>
           </table>
-        </div>
+        </div>{/* end hidden sm:block + overflow-x-auto */}
 
         {/* Pagination */}
         {totalPages > 1 && (
