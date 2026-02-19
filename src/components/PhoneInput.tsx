@@ -330,14 +330,7 @@ export default function PhoneInput({
             </svg>
             {error || `Please enter a valid ${country.name} number (${country.hint})`}
           </p>
-        ) : showSuccess ? (
-          <p className={`text-xs flex items-center gap-1.5 ${isDark ? "text-green-400" : "text-green-600"}`}>
-            <svg className="w-3 h-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-            </svg>
-            Looks good
-          </p>
-        ) : local.length > 0 ? (
+        ) : !showSuccess && local.length > 0 ? (
           <p className={`text-xs ${isDark ? "text-white/20" : "text-[#b8b0a0]"}`}>
             {country.digits - local.length} more digit{country.digits - local.length !== 1 ? "s" : ""} needed
           </p>

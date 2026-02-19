@@ -60,119 +60,142 @@ export default function RegisterPage() {
   return (
     <div className="min-h-screen flex flex-col lg:flex-row">
 
-      {/* ─── Left Panel ─── */}
-      <div className="relative lg:w-[42%] bg-[#0a0a0a] bg-dot-grid flex flex-col justify-between overflow-hidden min-h-[260px] lg:min-h-screen">
-        {/* Decorative rings */}
-        <div className="absolute -top-40 -right-40 w-96 h-96 border border-[#c4952a]/[0.08] rounded-full pointer-events-none" />
-        <div className="absolute -top-20 -right-20 w-56 h-56 border border-[#c4952a]/[0.06] rounded-full pointer-events-none" />
-        <div className="absolute -bottom-32 -left-32 w-80 h-80 border border-[#c4952a]/[0.06] rounded-full pointer-events-none" />
-        <div className="absolute top-1/4 right-0 w-px h-40 bg-gradient-to-b from-transparent via-[#c4952a]/15 to-transparent pointer-events-none" />
+      {/* ════════════════════════════════════════
+          LEFT PANEL — Brand & Hero Typography
+          ════════════════════════════════════════ */}
+      <div className="relative lg:w-[45%] bg-[#080808] flex flex-col justify-between overflow-hidden min-h-[300px] lg:min-h-screen">
+
+        {/* Thin vertical gold accent line — left edge */}
+        <div className="absolute left-0 top-0 bottom-0 w-[2px] bg-gradient-to-b from-transparent via-[#c4952a]/35 to-transparent pointer-events-none" />
+
+        {/* Large watermark year */}
+        <div
+          className="absolute bottom-0 right-0 font-display font-bold text-white select-none pointer-events-none leading-none"
+          style={{ fontSize: "clamp(12rem, 28vw, 22rem)", opacity: 0.025, transform: "translate(15%, 10%)" }}
+          aria-hidden
+        >
+          25
+        </div>
+
+        {/* Subtle diagonal grid lines */}
+        <div
+          className="absolute inset-0 pointer-events-none opacity-[0.03]"
+          style={{
+            backgroundImage: "repeating-linear-gradient(45deg, #c4952a 0, #c4952a 1px, transparent 0, transparent 50%)",
+            backgroundSize: "48px 48px",
+          }}
+        />
 
         {/* Top brand mark */}
         <div className="relative z-10 pt-10 px-10 lg:pt-14 lg:px-14">
           <div className="flex items-center gap-3">
-            <div className="w-7 h-px bg-[#c4952a]" />
-            <span className="text-[#c4952a] text-[10px] tracking-[0.45em] uppercase font-medium">
+            <div className="w-8 h-px bg-[#c4952a]" />
+            <span className="text-[#c4952a] text-[9px] tracking-[0.55em] uppercase font-semibold">
               Exclusive Event
             </span>
           </div>
         </div>
 
-        {/* Center hero text */}
-        <div className="relative z-10 px-10 py-10 lg:px-14">
-          <h1 className="font-display text-white text-4xl lg:text-5xl xl:text-[3.5rem] leading-[1.05] mb-6">
-            Reserve Your<br />
-            <span className="italic text-[#c4952a]/90">Invitation</span>
+        {/* Hero typography — the centrepiece */}
+        <div className="relative z-10 px-10 pb-10 lg:px-14 lg:pb-14">
+          <h1
+            className="font-display text-white leading-[0.9] mb-8"
+            style={{ fontSize: "clamp(3.5rem, 7vw, 6.5rem)" }}
+          >
+            Reserve<br />
+            Your<br />
+            <em className="not-italic text-[#c4952a]">Invitation.</em>
           </h1>
-          <div className="w-12 h-0.5 bg-[#c4952a] mb-6" />
-          <p className="text-white/35 text-sm lg:text-[15px] leading-relaxed max-w-xs">
-            An exclusive evening of exceptional properties and curated real estate insights.
-          </p>
-        </div>
 
-        {/* Bottom note */}
-        <div className="relative z-10 pb-10 px-10 lg:pb-12 lg:px-14">
-          <div className="flex items-center gap-2.5">
+          {/* Ornamental rule */}
+          <div className="flex items-center gap-5 mb-7">
+            <div className="w-10 h-px bg-[#c4952a]/50" />
+            <div className="w-1.5 h-1.5 rounded-full bg-[#c4952a]/50" />
+            <div className="flex-1 h-px bg-[#c4952a]/15" />
+          </div>
+
+          <p className="text-white/30 text-[13px] leading-[1.8] max-w-[260px]">
+            A curated evening of exceptional properties and exclusive real estate insights.
+          </p>
+
+          {/* Bottom meta */}
+          <div className="mt-12 flex items-center gap-2.5">
             <div className="w-1.5 h-1.5 rounded-full bg-[#c4952a] animate-pulse-gold" />
-            <p className="text-white/25 text-xs tracking-wide">
-              Your QR pass will be delivered to your inbox
-            </p>
+            <span className="text-white/20 text-[11px] tracking-[0.2em]">
+              QR pass delivered to your inbox
+            </span>
           </div>
         </div>
       </div>
 
-      {/* ─── Right Panel ─── */}
-      <div className="flex-1 bg-[#faf7f2] flex flex-col">
-        <div className="flex-1 flex items-center justify-center px-6 py-12 lg:px-12 xl:px-20">
-          <div className="w-full max-w-[440px] animate-fade-in-up">
+      {/* ════════════════════════════════════════
+          RIGHT PANEL — Registration Form
+          ════════════════════════════════════════ */}
+      <div className="flex-1 bg-[#F7F3EC] flex flex-col">
+        <div className="flex-1 flex items-center justify-center px-8 py-14 lg:px-14 xl:px-20">
+          <div className="w-full max-w-[420px] animate-fade-in-up">
 
             {/* Form header */}
-            <div className="mb-9">
-              <div className="inline-flex items-center gap-2 border border-[#c4952a]/30 rounded-full px-3.5 py-1.5 mb-6">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#c4952a] animate-pulse-gold" />
-                <span className="text-[#c4952a] text-[10px] tracking-[0.35em] uppercase font-semibold">
+            <div className="mb-11">
+              <div className="flex items-center gap-2 mb-7">
+                <div className="w-1.5 h-1.5 rounded-full bg-[#c4952a] animate-pulse-gold" />
+                <span className="text-[#c4952a] text-[9px] tracking-[0.5em] uppercase font-bold">
                   Registration Open
                 </span>
               </div>
-              <h2 className="font-display text-[#0a0a0a] text-3xl lg:text-[2rem] mb-2.5">
-                Complete Your Details
+              <h2
+                className="font-display text-[#080808] leading-[1.05]"
+                style={{ fontSize: "clamp(2rem, 4vw, 3rem)" }}
+              >
+                Complete<br />Your Details
               </h2>
-              <p className="text-[#8a7f6e] text-sm leading-relaxed">
-                Fill in your information to receive your exclusive digital pass
-              </p>
             </div>
 
             {/* Form */}
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-7">
 
-              <div className="grid grid-cols-2 gap-3.5">
+              {/* Name row */}
+              <div className="grid grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-[10px] font-semibold text-[#6b6359] tracking-[0.18em] uppercase mb-2">
+                  <label className="block text-[9px] font-bold text-[#9A8F7E] tracking-[0.28em] uppercase mb-2">
                     First Name <span className="text-[#c4952a]">*</span>
                   </label>
                   <input
-                    type="text"
-                    name="firstName"
-                    required
-                    value={form.firstName}
-                    onChange={handleChange}
+                    type="text" name="firstName" required
+                    value={form.firstName} onChange={handleChange}
                     placeholder="John"
-                    className="input-luxury"
+                    className="input-line"
                   />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-semibold text-[#6b6359] tracking-[0.18em] uppercase mb-2">
+                  <label className="block text-[9px] font-bold text-[#9A8F7E] tracking-[0.28em] uppercase mb-2">
                     Last Name <span className="text-[#c4952a]">*</span>
                   </label>
                   <input
-                    type="text"
-                    name="lastName"
-                    required
-                    value={form.lastName}
-                    onChange={handleChange}
+                    type="text" name="lastName" required
+                    value={form.lastName} onChange={handleChange}
                     placeholder="Doe"
-                    className="input-luxury"
+                    className="input-line"
                   />
                 </div>
               </div>
 
+              {/* Email */}
               <div>
-                <label className="block text-[10px] font-semibold text-[#6b6359] tracking-[0.18em] uppercase mb-2">
+                <label className="block text-[9px] font-bold text-[#9A8F7E] tracking-[0.28em] uppercase mb-2">
                   Email Address <span className="text-[#c4952a]">*</span>
                 </label>
                 <input
-                  type="email"
-                  name="email"
-                  required
-                  value={form.email}
-                  onChange={handleChange}
+                  type="email" name="email" required
+                  value={form.email} onChange={handleChange}
                   placeholder="john@company.com"
-                  className="input-luxury"
+                  className="input-line"
                 />
               </div>
 
+              {/* Phone */}
               <div>
-                <label className="block text-[10px] font-semibold text-[#6b6359] tracking-[0.18em] uppercase mb-2">
+                <label className="block text-[9px] font-bold text-[#9A8F7E] tracking-[0.28em] uppercase mb-2">
                   Mobile Number <span className="text-[#c4952a]">*</span>
                 </label>
                 <PhoneInput
@@ -183,48 +206,45 @@ export default function RegisterPage() {
                 />
               </div>
 
+              {/* Company */}
               <div>
-                <label className="block text-[10px] font-semibold text-[#6b6359] tracking-[0.18em] uppercase mb-2">
+                <label className="block text-[9px] font-bold text-[#9A8F7E] tracking-[0.28em] uppercase mb-2">
                   Company / Organization
                 </label>
                 <input
-                  type="text"
-                  name="company"
-                  value={form.company}
-                  onChange={handleChange}
+                  type="text" name="company"
+                  value={form.company} onChange={handleChange}
                   placeholder="Your company"
-                  className="input-luxury"
+                  className="input-line"
                 />
               </div>
 
+              {/* Designation */}
               <div>
-                <label className="block text-[10px] font-semibold text-[#6b6359] tracking-[0.18em] uppercase mb-2">
+                <label className="block text-[9px] font-bold text-[#9A8F7E] tracking-[0.28em] uppercase mb-2">
                   Designation / Role
                 </label>
                 <input
-                  type="text"
-                  name="designation"
-                  value={form.designation}
-                  onChange={handleChange}
+                  type="text" name="designation"
+                  value={form.designation} onChange={handleChange}
                   placeholder="Your position"
-                  className="input-luxury"
+                  className="input-line"
                 />
               </div>
 
+              {/* Error */}
               {error && (
-                <div className="flex items-start gap-3 px-4 py-3 bg-red-50 border border-red-200 rounded-lg animate-fade-in">
-                  <svg className="w-4 h-4 text-red-500 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
-                  </svg>
-                  <p className="text-red-600 text-sm">{error}</p>
+                <div className="flex items-start gap-2.5 py-3 border-l-2 border-red-400 pl-4 animate-fade-in">
+                  <p className="text-red-500 text-sm leading-snug">{error}</p>
                 </div>
               )}
 
-              <div className="pt-1">
+              {/* CTA */}
+              <div className="pt-3">
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full bg-[#0a0a0a] text-white text-sm font-medium tracking-[0.06em] py-[1.05rem] rounded-lg hover:bg-[#1a1a1a] active:scale-[0.99] transition-all flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="group w-full bg-[#080808] text-white text-[11px] font-semibold tracking-[0.15em] uppercase py-5 flex items-center justify-center gap-4 hover:bg-[#c4952a] transition-colors duration-500 disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   {loading ? (
                     <>
@@ -237,30 +257,27 @@ export default function RegisterPage() {
                   ) : (
                     <>
                       Register &amp; Receive QR Pass
-                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                      <svg
+                        className="w-5 h-5 group-hover:translate-x-1.5 transition-transform duration-300"
+                        fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M17.25 8.25L21 12m0 0l-3.75 3.75M21 12H3" />
                       </svg>
                     </>
                   )}
                 </button>
 
-                <p className="text-center text-[#a89e8a] text-xs mt-3 tracking-wide">
-                  By registering, you agree to receive event communications
+                <p className="text-center text-[#B4A992] text-[10px] mt-4 tracking-[0.15em]">
+                  By registering you agree to receive event communications
                 </p>
               </div>
             </form>
           </div>
         </div>
 
-        {/* Footer row */}
-        <div className="py-4 px-8 flex items-center justify-between border-t border-[#e8e2d5]">
-          <span className="text-[#c4b89a] text-xs tracking-wider">© Exclusive Event 2025</span>
-          <Link
-            href="/admin"
-            className="text-[#a89e8a] hover:text-[#0a0a0a] text-xs tracking-wider transition-colors"
-          >
-            Admin →
-          </Link>
+        {/* Footer */}
+        <div className="py-4 px-10 flex items-center justify-center border-t border-[#E8DFD0]">
+          <span className="text-[#C4B49A] text-[9px] tracking-[0.35em] uppercase">© Exclusive Event 2025</span>
         </div>
       </div>
     </div>

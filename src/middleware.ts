@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 const ADMIN_SECRET = process.env.ADMIN_SECRET || "yatharth";
 
-const PROTECTED_API_ROUTES = ["/api/attendees", "/api/checkin", "/api/import", "/api/manual-entry"];
+const PROTECTED_API_ROUTES = ["/api/attendees", "/api/checkin", "/api/import", "/api/manual-entry", "/api/resend-qr", "/api/toggle-checkin"];
 
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
@@ -30,5 +30,5 @@ export function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/admin/:path*", "/api/attendees/:path*", "/api/checkin/:path*", "/api/import/:path*", "/api/manual-entry/:path*"],
+  matcher: ["/admin/:path*", "/api/attendees/:path*", "/api/checkin/:path*", "/api/import/:path*", "/api/manual-entry/:path*", "/api/resend-qr", "/api/toggle-checkin"],
 };
