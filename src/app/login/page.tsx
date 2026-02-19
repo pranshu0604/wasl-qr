@@ -14,16 +14,23 @@ export default function AdminLoginPage() {
     setLoading(true);
     setError("");
 
-    // Set the cookie and verify
-    document.cookie = `admin_secret=${encodeURIComponent(secret)}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Strict`;
+    try {
+      const res = await fetch("/api/auth", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ secret }),
+      });
 
-    const res = await fetch("/api/attendees?limit=1");
+      const data = await res.json();
 
-    if (res.ok) {
-      router.push("/admin");
-    } else {
-      document.cookie = "admin_secret=; path=/; max-age=0";
-      setError("Invalid admin password. Please try again.");
+      if (res.ok && data.ok) {
+        // Cookie is set server-side by the API, just redirect
+        window.location.href = "/admin";
+      } else {
+        setError(data.error || "Invalid admin password. Please try again.");
+      }
+    } catch {
+      setError("Something went wrong. Please try again.");
     }
 
     setLoading(false);
@@ -50,6 +57,7 @@ export default function AdminLoginPage() {
               <input
                 type="password"
                 required
+                autoComplete="current-password"
                 value={secret}
                 onChange={(e) => { setSecret(e.target.value); setError(""); }}
                 placeholder="Enter password"
