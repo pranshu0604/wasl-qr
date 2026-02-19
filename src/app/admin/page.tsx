@@ -359,6 +359,7 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [importResult, setImportResult] = useState<string | null>(null);
   const [selectedAttendee, setSelectedAttendee] = useState<Attendee | null>(null);
+  const [toggleLoadingId, setToggleLoadingId] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const fetchAttendees = useCallback(async () => {
@@ -464,6 +465,24 @@ export default function AdminDashboard() {
         prev ? { ...prev, checkedIn, checkedInAt: checkedIn ? new Date().toISOString() : null } : prev
       );
     }
+  };
+
+  const handleQuickToggle = async (e: React.MouseEvent, id: string) => {
+    e.stopPropagation();
+    if (toggleLoadingId) return;
+    setToggleLoadingId(id);
+    try {
+      const res = await fetch("/api/toggle-checkin", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        handleCheckinToggle(id, data.checkedIn);
+      }
+    } catch { /* silent */ }
+    finally { setToggleLoadingId(null); }
   };
 
   const checkedInPercent = stats.total > 0 ? Math.round((stats.checkedIn / stats.total) * 100) : 0;
@@ -621,15 +640,45 @@ export default function AdminDashboard() {
                       )}
                     </td>
                     <td className="px-6 py-4 text-right">
-                      <button
-                        onClick={(e) => { e.stopPropagation(); setSelectedAttendee(a); }}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-medium text-[#8a7f6e] border border-[#e0d8ca] hover:border-[#c4952a]/40 hover:text-[#c4952a] hover:bg-[#fdf3e0] transition-all opacity-0 group-hover:opacity-100"
-                      >
-                        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 013.75 9.375v-4.5zM3.75 14.625c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5a1.125 1.125 0 01-1.125-1.125v-4.5zM13.5 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 0113.5 9.375v-4.5z" />
-                        </svg>
-                        View QR
-                      </button>
+                      <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                        {/* Quick check-in / uncheck */}
+                        <button
+                          onClick={(e) => handleQuickToggle(e, a.id)}
+                          disabled={toggleLoadingId === a.id}
+                          title={a.checkedIn ? "Uncheck" : "Check In"}
+                          className={`inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-medium border transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
+                            a.checkedIn
+                              ? "border-red-200 text-red-500 hover:bg-red-50"
+                              : "border-green-200 text-green-600 hover:bg-green-50"
+                          }`}
+                        >
+                          {toggleLoadingId === a.id ? (
+                            <svg className="animate-spin h-3.5 w-3.5" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                            </svg>
+                          ) : a.checkedIn ? (
+                            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                          ) : (
+                            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                            </svg>
+                          )}
+                          {a.checkedIn ? "Uncheck" : "Check In"}
+                        </button>
+                        {/* View QR */}
+                        <button
+                          onClick={(e) => { e.stopPropagation(); setSelectedAttendee(a); }}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-medium text-[#8a7f6e] border border-[#e0d8ca] hover:border-[#c4952a]/40 hover:text-[#c4952a] hover:bg-[#fdf3e0] transition-all"
+                        >
+                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 013.75 9.375v-4.5zM3.75 14.625c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5a1.125 1.125 0 01-1.125-1.125v-4.5zM13.5 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 0113.5 9.375v-4.5z" />
+                          </svg>
+                          View QR
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))
