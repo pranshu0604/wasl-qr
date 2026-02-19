@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback, useRef, useEffect } from "react";
+import PhoneInput from "@/components/PhoneInput";
 
 type Stage = "search" | "confirming" | "success" | "already_in" | "not_found";
 
@@ -32,6 +33,7 @@ export default function KioskPage() {
   const [checkedInAt, setCheckedInAt] = useState<string | null>(null);
 
   const [guestForm, setGuestForm] = useState({ firstName: "", lastName: "", email: "", phone: "" });
+  const [guestPhoneValid, setGuestPhoneValid] = useState(false);
   const [guestLoading, setGuestLoading] = useState(false);
   const [guestError, setGuestError] = useState("");
 
@@ -58,6 +60,7 @@ export default function KioskPage() {
     setSelected(null);
     setCheckedInAt(null);
     setGuestForm({ firstName: "", lastName: "", email: "", phone: "" });
+    setGuestPhoneValid(false);
     setGuestError("");
   };
 
@@ -470,12 +473,14 @@ export default function KioskPage() {
 
                 <div>
                   <label className="block text-[10px] font-semibold text-white/30 tracking-[0.15em] uppercase mb-2">Mobile Number</label>
-                  <input
-                    type="tel"
+                  <PhoneInput
                     value={guestForm.phone}
-                    onChange={(e) => setGuestForm(p => ({ ...p, phone: e.target.value }))}
-                    placeholder="+971 50 000 0000"
-                    className="input-dark"
+                    onChange={(full, valid) => {
+                      setGuestForm(p => ({ ...p, phone: full }));
+                      setGuestPhoneValid(valid);
+                    }}
+                    variant="dark"
+                    defaultCountry="IN"
                   />
                 </div>
 

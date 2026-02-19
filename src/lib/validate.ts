@@ -1,12 +1,18 @@
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const PHONE_REGEX = /^[+]?[\d\s\-().]{7,20}$/;
+
+// Accepts international format: +<dialcode><digits>
+// e.g. +919876543210, +971501234567, +12125550100
+// Also accepts legacy loose formats for backwards compat
+const PHONE_REGEX_INTL = /^\+\d{7,15}$/;
+const PHONE_REGEX_LOOSE = /^[+]?[\d\s\-().]{7,20}$/;
 
 export function isValidEmail(email: string): boolean {
   return EMAIL_REGEX.test(email) && email.length <= 254;
 }
 
 export function isValidPhone(phone: string): boolean {
-  return PHONE_REGEX.test(phone);
+  const cleaned = phone.replace(/\s/g, "");
+  return PHONE_REGEX_INTL.test(cleaned) || PHONE_REGEX_LOOSE.test(cleaned);
 }
 
 export function sanitize(input: string): string {

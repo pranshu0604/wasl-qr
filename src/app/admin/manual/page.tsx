@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import PhoneInput from "@/components/PhoneInput";
 
 interface ManualResult {
   type: "success" | "info" | "error";
@@ -10,6 +11,7 @@ interface ManualResult {
 export default function ManualEntryPage() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<ManualResult | null>(null);
+  const [phoneValid, setPhoneValid] = useState(false);
   const [form, setForm] = useState({
     firstName: "",
     lastName: "",
@@ -22,6 +24,11 @@ export default function ManualEntryPage() {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
     setResult(null);
+  };
+
+  const handlePhoneChange = (fullNumber: string, isValid: boolean) => {
+    setForm((prev) => ({ ...prev, phone: fullNumber }));
+    setPhoneValid(isValid);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -48,6 +55,7 @@ export default function ManualEntryPage() {
 
       if (res.ok) {
         setForm({ firstName: "", lastName: "", email: "", phone: "", company: "", designation: "" });
+        setPhoneValid(false);
       }
     } catch {
       setResult({ type: "error", message: "Something went wrong. Please try again." });
@@ -114,9 +122,14 @@ export default function ManualEntryPage() {
 
           <div>
             <label className="block text-[10px] font-semibold text-[#6b6359] tracking-[0.18em] uppercase mb-2">
-              Phone <span className="text-[#c4952a]">*</span>
+              Mobile Number <span className="text-[#c4952a]">*</span>
             </label>
-            <input type="tel" name="phone" required value={form.phone} onChange={handleChange} placeholder="+971 50 000 0000" className="input-luxury" />
+            <PhoneInput
+              value={form.phone}
+              onChange={handlePhoneChange}
+              variant="light"
+              defaultCountry="IN"
+            />
           </div>
 
           <div>

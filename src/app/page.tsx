@@ -3,11 +3,13 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import PhoneInput from "@/components/PhoneInput";
 
 export default function RegisterPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [phoneValid, setPhoneValid] = useState(false);
   const [form, setForm] = useState({
     firstName: "",
     lastName: "",
@@ -22,8 +24,18 @@ export default function RegisterPage() {
     setError("");
   };
 
+  const handlePhoneChange = (fullNumber: string, isValid: boolean) => {
+    setForm((prev) => ({ ...prev, phone: fullNumber }));
+    setPhoneValid(isValid);
+    setError("");
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!phoneValid) {
+      setError("Please enter a valid phone number for your country.");
+      return;
+    }
     setLoading(true);
     setError("");
 
@@ -163,14 +175,11 @@ export default function RegisterPage() {
                 <label className="block text-[10px] font-semibold text-[#6b6359] tracking-[0.18em] uppercase mb-2">
                   Mobile Number <span className="text-[#c4952a]">*</span>
                 </label>
-                <input
-                  type="tel"
-                  name="phone"
-                  required
+                <PhoneInput
                   value={form.phone}
-                  onChange={handleChange}
-                  placeholder="+971 50 000 0000"
-                  className="input-luxury"
+                  onChange={handlePhoneChange}
+                  variant="light"
+                  defaultCountry="IN"
                 />
               </div>
 
