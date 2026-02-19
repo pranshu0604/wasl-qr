@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { Html5Qrcode } from "html5-qrcode";
 import Link from "next/link";
 
 interface CheckinResult {
@@ -13,22 +12,33 @@ interface CheckinResult {
 export default function ScanPage() {
   const [scanning, setScanning] = useState(false);
   const [result, setResult] = useState<CheckinResult | null>(null);
-  const [processing, setProcessing] = useState(false);
-  const scannerRef = useRef<Html5Qrcode | null>(null);
+
+  // useRef instead of useState — the scanner library holds a stale reference to
+  // the callback passed at start() time, so useState would always read the old
+  // captured value. The ref is always current regardless of closure age.
+  const processingRef = useRef(false);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const scannerRef = useRef<any>(null);
   const readerRef = useRef<HTMLDivElement>(null);
 
   const handleScan = useCallback(async (decodedText: string) => {
-    if (processing) return;
-    setProcessing(true);
+    if (processingRef.current) return;
+    processingRef.current = true;
 
     try {
-      const url = new URL(decodedText);
-      const pathParts = url.pathname.split("/");
-      const token = pathParts[pathParts.length - 1];
+      // Accept both a full verify URL and a bare token
+      let token = decodedText.trim();
+      try {
+        const url = new URL(decodedText);
+        const parts = url.pathname.split("/").filter(Boolean);
+        token = parts[parts.length - 1] ?? token;
+      } catch {
+        // decodedText is already the raw token — use it as-is
+      }
 
       if (!token) {
-        setResult({ type: "error", name: "", message: "Invalid QR code format." });
-        setProcessing(false);
+        setResult({ type: "error", name: "", message: "Invalid QR code — nothing to scan." });
+        setTimeout(() => { setResult(null); processingRef.current = false; }, 4000);
         return;
       }
 
@@ -40,47 +50,68 @@ export default function ScanPage() {
 
       const data = await res.json();
 
-      if (!res.ok) {
+      if (res.status === 404) {
+        setResult({ type: "error", name: "", message: "QR code not found. Use Manual Entry." });
+      } else if (!res.ok) {
         setResult({ type: "error", name: "", message: data.error || "Check-in failed." });
       } else if (data.alreadyCheckedIn) {
-        setResult({ type: "warning", name: `${data.attendee.firstName} ${data.attendee.lastName}`, message: "Already checked in!" });
+        setResult({
+          type: "warning",
+          name: `${data.attendee.firstName} ${data.attendee.lastName}`,
+          message: "Already checked in earlier.",
+        });
       } else {
-        setResult({ type: "success", name: `${data.attendee.firstName} ${data.attendee.lastName}`, message: "Welcome! Check-in successful." });
+        setResult({
+          type: "success",
+          name: `${data.attendee.firstName} ${data.attendee.lastName}`,
+          message: "Welcome — check-in successful!",
+        });
       }
     } catch {
-      setResult({ type: "error", name: "", message: "Could not read QR code. Try manual entry." });
+      setResult({ type: "error", name: "", message: "Could not process QR code. Try Manual Entry." });
     }
 
-    setTimeout(() => { setResult(null); setProcessing(false); }, 4000);
-  }, [processing]);
+    setTimeout(() => { setResult(null); processingRef.current = false; }, 4000);
+  }, []); // no state deps — reads processingRef directly
 
   const startScanner = useCallback(async () => {
     if (!readerRef.current) return;
     try {
+      // Dynamic import — html5-qrcode accesses window/document at module load
+      // time which crashes Next.js SSR on Vercel. Import only on button click.
+      const { Html5Qrcode } = await import("html5-qrcode");
       const scanner = new Html5Qrcode("qr-reader");
       scannerRef.current = scanner;
       await scanner.start(
         { facingMode: "environment" },
         { fps: 10, qrbox: { width: 260, height: 260 } },
         handleScan,
-        () => {}
+        () => {} // ignore individual frame errors
       );
       setScanning(true);
     } catch {
-      setResult({ type: "error", name: "", message: "Camera access denied. Please enable camera permissions." });
+      setResult({ type: "error", name: "", message: "Camera access denied. Enable camera permissions and try again." });
     }
   }, [handleScan]);
 
   const stopScanner = useCallback(async () => {
     if (scannerRef.current) {
-      try { await scannerRef.current.stop(); scannerRef.current.clear(); } catch { /* ignore */ }
+      try {
+        await scannerRef.current.stop();
+        scannerRef.current.clear();
+      } catch { /* scanner may already be stopped */ }
       scannerRef.current = null;
     }
     setScanning(false);
   }, []);
 
+  // Cleanup on unmount
   useEffect(() => {
-    return () => { if (scannerRef.current) { scannerRef.current.stop().catch(() => {}); } };
+    return () => {
+      if (scannerRef.current) {
+        scannerRef.current.stop().catch(() => {});
+      }
+    };
   }, []);
 
   const resultStyles = {

@@ -1,8 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 
-const ADMIN_SECRET = process.env.ADMIN_SECRET || "yatharth";
+// In production, ADMIN_SECRETS env var MUST be set in Vercel dashboard.
+// In local dev it falls back to defaults so login still works.
+const fallback = process.env.NODE_ENV === "production" ? "" : "yatharth,adwait";
+const ADMIN_PASSWORDS = new Set(
+  (process.env.ADMIN_SECRETS || fallback).split(",").map((p) => p.trim()).filter(Boolean)
+);
 
-const PROTECTED_API_ROUTES = ["/api/attendees", "/api/checkin", "/api/import", "/api/manual-entry", "/api/resend-qr", "/api/toggle-checkin"];
+const PROTECTED_API_ROUTES = [
+  "/api/attendees", "/api/checkin", "/api/import", "/api/manual-entry",
+  "/api/resend-qr", "/api/toggle-checkin",
+  "/api/self-checkin", // kiosk no longer uses this — block unauthenticated callers
+];
 
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
@@ -10,7 +19,7 @@ export function middleware(req: NextRequest) {
   // Protect admin pages — always require admin_secret cookie
   if (pathname.startsWith("/admin")) {
     const cookie = req.cookies.get("admin_secret")?.value;
-    if (cookie !== ADMIN_SECRET) {
+    if (!cookie || !ADMIN_PASSWORDS.has(cookie)) {
       const loginUrl = new URL("/login", req.url);
       return NextResponse.redirect(loginUrl);
     }
@@ -21,7 +30,7 @@ export function middleware(req: NextRequest) {
     const cookie = req.cookies.get("admin_secret")?.value;
     const header = req.headers.get("x-admin-secret");
 
-    if (cookie !== ADMIN_SECRET && header !== ADMIN_SECRET) {
+    if ((!cookie || !ADMIN_PASSWORDS.has(cookie)) && (!header || !ADMIN_PASSWORDS.has(header))) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
   }
@@ -30,5 +39,10 @@ export function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/admin/:path*", "/api/attendees/:path*", "/api/checkin/:path*", "/api/import/:path*", "/api/manual-entry/:path*", "/api/resend-qr", "/api/toggle-checkin"],
+  matcher: [
+    "/admin/:path*",
+    "/api/attendees/:path*", "/api/checkin/:path*", "/api/import/:path*",
+    "/api/manual-entry/:path*", "/api/resend-qr", "/api/toggle-checkin",
+    "/api/self-checkin",
+  ],
 };
