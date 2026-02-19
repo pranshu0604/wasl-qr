@@ -1,12 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
-  const ADMIN_SECRET = process.env.ADMIN_SECRET;
-
-  // If no secret configured, allow access
-  if (!ADMIN_SECRET) {
-    return NextResponse.json({ ok: true });
-  }
+  const ADMIN_SECRET = process.env.ADMIN_SECRET || "yatharth";
 
   try {
     const { secret } = await req.json();

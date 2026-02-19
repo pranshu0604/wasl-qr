@@ -1,17 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 
-const ADMIN_SECRET = process.env.ADMIN_SECRET;
+const ADMIN_SECRET = process.env.ADMIN_SECRET || "yatharth";
 
 const PROTECTED_API_ROUTES = ["/api/attendees", "/api/checkin", "/api/import", "/api/manual-entry"];
 
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
-  // Protect admin pages — require admin_secret cookie
+  // Protect admin pages — always require admin_secret cookie
   if (pathname.startsWith("/admin")) {
-    // If no ADMIN_SECRET is configured, allow access (dev mode)
-    if (!ADMIN_SECRET) return NextResponse.next();
-
     const cookie = req.cookies.get("admin_secret")?.value;
     if (cookie !== ADMIN_SECRET) {
       const loginUrl = new URL("/login", req.url);
@@ -20,7 +17,7 @@ export function middleware(req: NextRequest) {
   }
 
   // Protect admin API routes — require admin_secret cookie or x-admin-secret header
-  if (ADMIN_SECRET && PROTECTED_API_ROUTES.some((r) => pathname.startsWith(r))) {
+  if (PROTECTED_API_ROUTES.some((r) => pathname.startsWith(r))) {
     const cookie = req.cookies.get("admin_secret")?.value;
     const header = req.headers.get("x-admin-secret");
 
