@@ -2,12 +2,17 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap');
 
 :root {
-  --gold: #e4a44e;
-  --gold-light: #fdf8ef;
+  --gold: #c4952a;
+  --gold-hover: #d4a844;
+  --gold-light: #fdf3e0;
   --charcoal: #1a1a1a;
+  --ink: #0a0a0a;
+  --cream: #faf7f2;
+  --cream-border: #e0d8ca;
+  --muted: #8a7f6e;
 }
 
 body {
@@ -20,81 +25,133 @@ body {
   font-family: 'Playfair Display', Georgia, serif;
 }
 
-/* Custom scrollbar */
-::-webkit-scrollbar {
-  width: 6px;
-}
+/* ─── Scrollbar ─── */
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #d1c9b8; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #b0a890; }
 
-::-webkit-scrollbar-track {
-  background: #f5f5f0;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #d1d1d1;
-  border-radius: 3px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #b0b0b0;
-}
-
-/* Animations */
+/* ─── Animations ─── */
 @keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0);    }
 }
 
-.animate-fade-in-up {
-  animation: fadeInUp 0.6s ease-out forwards;
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.92); }
+  to   { opacity: 1; transform: scale(1);    }
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-12px); }
+  to   { opacity: 1; transform: translateY(0);      }
+}
+
+@keyframes countdown {
+  from { width: 100%; }
+  to   { width: 0%;   }
 }
 
 @keyframes shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
+  0%   { background-position: -200% 0; }
+  100% { background-position:  200% 0; }
 }
 
+@keyframes checkDraw {
+  from { stroke-dashoffset: 100; }
+  to   { stroke-dashoffset: 0;   }
+}
+
+@keyframes pulseGold {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.4; }
+}
+
+.animate-fade-in-up   { animation: fadeInUp  0.55s cubic-bezier(0.16,1,0.3,1) forwards; }
+.animate-fade-in      { animation: fadeIn    0.4s  ease-out            forwards; }
+.animate-scale-in     { animation: scaleIn   0.45s cubic-bezier(0.16,1,0.3,1) forwards; }
+.animate-slide-down   { animation: slideDown 0.35s cubic-bezier(0.16,1,0.3,1) forwards; }
+.animate-countdown    { animation: countdown 5s    linear               forwards; }
+.animate-pulse-gold   { animation: pulseGold 2s    ease-in-out          infinite; }
 .animate-shimmer {
-  background: linear-gradient(90deg, transparent 0%, rgba(228, 164, 78, 0.1) 50%, transparent 100%);
+  background: linear-gradient(90deg, transparent 0%, rgba(196,149,42,0.12) 50%, transparent 100%);
   background-size: 200% 100%;
   animation: shimmer 2s infinite;
 }
 
-/* Input styles */
+/* ─── Dot grid background ─── */
+.bg-dot-grid {
+  background-image: radial-gradient(circle, rgba(196,149,42,0.08) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+
+/* ─── Input styles ─── */
 .input-luxury {
-  @apply w-full px-4 py-3.5 bg-white border border-charcoal-200 rounded-lg
-         text-charcoal-900 placeholder:text-charcoal-400
-         focus:outline-none focus:ring-2 focus:ring-gold-400/30 focus:border-gold-400
+  @apply w-full px-4 py-3.5 bg-white border border-[#e0d8ca] rounded-lg
+         text-[#0d0d0d] placeholder:text-[#b8b0a0] text-sm
+         focus:outline-none focus:border-[#c4952a] focus:ring-1 focus:ring-[#c4952a]/25
+         transition-all duration-200;
+}
+.input-luxury:hover:not(:focus) {
+  border-color: #ccc2b0;
+}
+
+.input-dark {
+  @apply w-full px-4 py-3.5 bg-white/[0.04] border border-white/10 rounded-lg
+         text-white placeholder:text-white/25 text-sm
+         focus:outline-none focus:border-[#c4952a]/50 focus:ring-1 focus:ring-[#c4952a]/20
          transition-all duration-200;
 }
 
-.input-luxury:hover {
-  @apply border-charcoal-300;
-}
-
-/* Button styles */
+/* ─── Button styles ─── */
 .btn-primary {
-  @apply px-8 py-3.5 bg-charcoal-900 text-white font-medium rounded-lg
-         hover:bg-charcoal-800 active:bg-charcoal-950
-         focus:outline-none focus:ring-2 focus:ring-charcoal-900/30
+  @apply px-8 py-3.5 bg-[#0d0d0d] text-white font-medium text-sm tracking-wide rounded-lg
+         hover:bg-[#1a1a1a] active:bg-black
+         focus:outline-none focus:ring-2 focus:ring-black/20
          transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed;
 }
 
 .btn-gold {
-  @apply px-8 py-3.5 bg-gold-500 text-white font-medium rounded-lg
-         hover:bg-gold-600 active:bg-gold-700
-         focus:outline-none focus:ring-2 focus:ring-gold-400/30
+  @apply px-8 py-3.5 bg-[#c4952a] text-white font-medium text-sm tracking-wide rounded-lg
+         hover:bg-[#d4a844] active:bg-[#b47e20]
+         focus:outline-none focus:ring-2 focus:ring-[#c4952a]/30
          transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed;
 }
 
 .btn-outline {
-  @apply px-8 py-3.5 bg-transparent border-2 border-charcoal-900 text-charcoal-900 font-medium rounded-lg
-         hover:bg-charcoal-900 hover:text-white
-         focus:outline-none focus:ring-2 focus:ring-charcoal-900/30
+  @apply px-8 py-3.5 bg-transparent border border-[#0d0d0d] text-[#0d0d0d] font-medium text-sm tracking-wide rounded-lg
+         hover:bg-[#0d0d0d] hover:text-white
+         focus:outline-none focus:ring-2 focus:ring-black/20
          transition-all duration-200;
+}
+
+.btn-ghost-gold {
+  @apply inline-flex items-center gap-2 text-[#c4952a] border border-[#c4952a]/30
+         hover:border-[#c4952a]/60 hover:text-[#d4a844]
+         px-5 py-2.5 rounded-lg text-sm font-medium
+         transition-all duration-200;
+}
+
+/* ─── Card styles ─── */
+.card-luxury {
+  @apply bg-white rounded-2xl shadow-xl shadow-black/5 border border-[#f0ead8];
+}
+
+.card-dark {
+  @apply bg-white/[0.03] border border-white/10 rounded-2xl;
+}
+
+/* ─── Ornamental divider ─── */
+.divider-gold {
+  @apply flex items-center gap-4 my-6;
+}
+.divider-gold::before,
+.divider-gold::after {
+  content: '';
+  @apply flex-1 h-px bg-[#c4952a]/20;
 }

@@ -13,6 +13,15 @@ interface AttendeeResult {
   checkedIn: boolean;
 }
 
+function Spinner({ className = "w-5 h-5" }: { className?: string }) {
+  return (
+    <svg className={`animate-spin ${className}`} fill="none" viewBox="0 0 24 24">
+      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+    </svg>
+  );
+}
+
 export default function KioskPage() {
   const [stage, setStage] = useState<Stage>("search");
   const [query, setQuery] = useState("");
@@ -22,27 +31,19 @@ export default function KioskPage() {
   const [confirming, setConfirming] = useState(false);
   const [checkedInAt, setCheckedInAt] = useState<string | null>(null);
 
-  // Not-on-list form
-  const [guestForm, setGuestForm] = useState({
-    firstName: "",
-    lastName: "",
-    email: "",
-    phone: "",
-  });
+  const [guestForm, setGuestForm] = useState({ firstName: "", lastName: "", email: "", phone: "" });
   const [guestLoading, setGuestLoading] = useState(false);
   const [guestError, setGuestError] = useState("");
 
   const inputRef = useRef<HTMLInputElement>(null);
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Auto-focus on search stage
   useEffect(() => {
     if (stage === "search") {
       setTimeout(() => inputRef.current?.focus(), 100);
     }
   }, [stage]);
 
-  // Auto-reset after success / already_in
   useEffect(() => {
     if (stage === "success" || stage === "already_in") {
       const timer = setTimeout(resetToSearch, 5000);
@@ -73,9 +74,7 @@ export default function KioskPage() {
     setSearching(true);
     debounceRef.current = setTimeout(async () => {
       try {
-        const res = await fetch(
-          `/api/search-attendees?q=${encodeURIComponent(value.trim())}`
-        );
+        const res = await fetch(`/api/search-attendees?q=${encodeURIComponent(value.trim())}`);
         const data = await res.json();
         setResults(data.attendees || []);
       } catch {
@@ -151,158 +150,100 @@ export default function KioskPage() {
   };
 
   return (
-    <div className="min-h-screen bg-charcoal-900 flex flex-col">
-      {/* Header */}
-      <header className="py-6 px-8 flex items-center justify-between border-b border-white/10">
-        <div className="flex items-center gap-3">
-          <div className="w-2 h-2 bg-gold-400 rounded-full"></div>
-          <h1 className="font-display text-gold-400 text-xl tracking-[0.2em] uppercase">
-            Exclusive Event
-          </h1>
+    <div className="min-h-screen bg-[#0a0a0a] bg-dot-grid flex flex-col">
+
+      {/* ─── Header ─── */}
+      <header className="relative z-10 border-b border-white/[0.06] py-5 px-8">
+        <div className="max-w-3xl mx-auto flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-5 h-px bg-[#c4952a]" />
+            <span className="font-display text-[#c4952a] text-lg tracking-[0.25em] uppercase">
+              Exclusive Event
+            </span>
+          </div>
+          <span className="text-white/20 text-[10px] tracking-[0.3em] uppercase font-medium">
+            Guest Check-In
+          </span>
         </div>
-        <span className="text-charcoal-400 text-sm tracking-wider uppercase">
-          Guest Check-In
-        </span>
       </header>
 
-      {/* Main */}
-      <main className="flex-1 flex items-center justify-center px-4 py-10">
-        {/* ── SEARCH STAGE ── */}
+      {/* ─── Main ─── */}
+      <main className="relative z-10 flex-1 flex items-center justify-center px-6 py-12">
+
+        {/* ── SEARCH ── */}
         {stage === "search" && (
           <div className="w-full max-w-2xl animate-fade-in-up">
-            <div className="text-center mb-10">
-              <h2 className="font-display text-4xl md:text-5xl text-white mb-3">
+            <div className="text-center mb-12">
+              <h2 className="font-display text-white text-[4.5rem] md:text-[5.5rem] leading-none mb-4">
                 Welcome
               </h2>
-              <p className="text-charcoal-400 text-lg">
-                Search your name to check in
+              <p className="text-white/30 text-lg tracking-wide">
+                Search your name to check in for today&apos;s event
               </p>
             </div>
 
-            {/* Search Input */}
+            {/* Search input */}
             <div className="relative">
-              <div className="absolute inset-y-0 left-5 flex items-center pointer-events-none">
+              <div className="absolute left-5 top-1/2 -translate-y-1/2 pointer-events-none">
                 {searching ? (
-                  <svg
-                    className="animate-spin w-5 h-5 text-gold-400"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                  >
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                    />
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                    />
-                  </svg>
+                  <Spinner className="w-5 h-5 text-[#c4952a]" />
                 ) : (
-                  <svg
-                    className="w-5 h-5 text-charcoal-500"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    strokeWidth={2}
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"
-                    />
+                  <svg className="w-5 h-5 text-white/25" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
                   </svg>
                 )}
               </div>
+
               <input
                 ref={inputRef}
                 type="text"
                 value={query}
                 onChange={(e) => handleSearch(e.target.value)}
                 placeholder="Type your first or last name..."
-                className="w-full bg-white/5 border border-white/10 text-white placeholder-charcoal-500 rounded-2xl pl-14 pr-5 py-5 text-xl focus:outline-none focus:border-gold-400 focus:ring-1 focus:ring-gold-400 transition-all"
+                className="w-full bg-white/[0.04] border border-white/10 text-white placeholder:text-white/20 rounded-2xl pl-14 pr-14 py-5 text-xl focus:outline-none focus:border-[#c4952a]/40 focus:ring-1 focus:ring-[#c4952a]/15 transition-all"
               />
+
               {query && (
                 <button
-                  onClick={() => {
-                    setQuery("");
-                    setResults([]);
-                    inputRef.current?.focus();
-                  }}
-                  className="absolute inset-y-0 right-5 flex items-center text-charcoal-500 hover:text-white transition-colors"
+                  onClick={() => { setQuery(""); setResults([]); inputRef.current?.focus(); }}
+                  className="absolute right-5 top-1/2 -translate-y-1/2 text-white/25 hover:text-white/50 transition-colors"
                 >
-                  <svg
-                    className="w-5 h-5"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    strokeWidth={2}
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M6 18L18 6M6 6l12 12"
-                    />
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                   </svg>
                 </button>
               )}
             </div>
 
-            {/* Results */}
+            {/* Results dropdown */}
             {results.length > 0 && (
-              <div className="mt-3 bg-white rounded-2xl shadow-2xl overflow-hidden">
+              <div className="mt-2 bg-white rounded-2xl shadow-2xl shadow-black/60 overflow-hidden animate-slide-down">
                 {results.map((a, i) => (
                   <button
                     key={a.id}
                     onClick={() => handleSelect(a)}
-                    className={`w-full flex items-center justify-between px-6 py-4 text-left hover:bg-gold-50 transition-colors ${
-                      i < results.length - 1
-                        ? "border-b border-charcoal-100"
-                        : ""
+                    className={`w-full flex items-center justify-between px-6 py-4 text-left hover:bg-[#fdf8f0] transition-colors group ${
+                      i < results.length - 1 ? "border-b border-[#f0e8d8]" : ""
                     }`}
                   >
                     <div>
-                      <p className="font-semibold text-charcoal-900 text-lg">
+                      <p className="font-semibold text-[#0a0a0a] text-lg leading-tight">
                         {a.firstName} {a.lastName}
                       </p>
                       {a.company && (
-                        <p className="text-charcoal-500 text-sm">{a.company}</p>
+                        <p className="text-[#8a7f6e] text-sm mt-0.5">{a.company}</p>
                       )}
                     </div>
                     {a.checkedIn ? (
-                      <span className="flex items-center gap-1.5 text-xs font-medium text-green-600 bg-green-50 border border-green-200 px-3 py-1 rounded-full">
-                        <svg
-                          className="w-3.5 h-3.5"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                          strokeWidth={2.5}
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            d="M5 13l4 4L19 7"
-                          />
+                      <span className="flex items-center gap-1.5 text-xs font-medium text-green-600 bg-green-50 border border-green-200 px-3 py-1.5 rounded-full flex-shrink-0 ml-4">
+                        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
                         </svg>
                         Checked In
                       </span>
                     ) : (
-                      <svg
-                        className="w-5 h-5 text-charcoal-400"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                        strokeWidth={2}
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          d="M8.25 4.5l7.5 7.5-7.5 7.5"
-                        />
+                      <svg className="w-5 h-5 text-[#c4952a]/60 group-hover:text-[#c4952a] group-hover:translate-x-0.5 transition-all flex-shrink-0 ml-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
                       </svg>
                     )}
                   </button>
@@ -312,32 +253,20 @@ export default function KioskPage() {
 
             {/* No results */}
             {query.trim().length >= 2 && !searching && results.length === 0 && (
-              <div className="mt-3 text-center text-charcoal-500 text-sm py-4">
+              <div className="mt-3 text-center text-white/25 text-sm py-3 animate-fade-in">
                 No results found for &ldquo;{query}&rdquo;
               </div>
             )}
 
             {/* Not on list CTA */}
-            <div className="mt-8 text-center">
-              <p className="text-charcoal-500 text-sm mb-3">
-                Can&apos;t find your name?
-              </p>
+            <div className="mt-10 text-center">
+              <p className="text-white/20 text-sm mb-3">Name not showing up?</p>
               <button
                 onClick={() => setStage("not_found")}
-                className="inline-flex items-center gap-2 text-gold-400 hover:text-gold-300 text-sm font-medium border border-gold-400/30 hover:border-gold-400/60 px-5 py-2.5 rounded-xl transition-all"
+                className="inline-flex items-center gap-2 text-[#c4952a]/60 hover:text-[#c4952a] text-sm font-medium border border-[#c4952a]/15 hover:border-[#c4952a]/35 px-5 py-2.5 rounded-xl transition-all"
               >
-                <svg
-                  className="w-4 h-4"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth={2}
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M12 4.5v15m7.5-7.5h-15"
-                  />
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                 </svg>
                 My name is not on the list
               </button>
@@ -345,310 +274,222 @@ export default function KioskPage() {
           </div>
         )}
 
-        {/* ── CONFIRMING STAGE ── */}
+        {/* ── CONFIRMING ── */}
         {stage === "confirming" && selected && (
-          <div className="w-full max-w-md text-center animate-fade-in-up">
-            <div className="bg-white rounded-3xl shadow-2xl overflow-hidden">
-              <div className="bg-charcoal-900 px-8 pt-10 pb-8">
-                <div className="w-20 h-20 bg-gold-400/10 border-2 border-gold-400/30 rounded-full flex items-center justify-center mx-auto mb-5">
-                  <span className="font-display text-gold-400 text-3xl">
-                    {selected.firstName[0]}
-                    {selected.lastName[0]}
-                  </span>
-                </div>
-                <h2 className="font-display text-3xl text-white mb-1">
-                  {selected.firstName} {selected.lastName}
-                </h2>
-                {selected.company && (
-                  <p className="text-charcoal-400 text-sm">{selected.company}</p>
-                )}
-                {selected.designation && (
-                  <p className="text-charcoal-500 text-xs mt-1">
-                    {selected.designation}
-                  </p>
-                )}
+          <div className="w-full max-w-sm text-center animate-scale-in">
+            {/* Avatar */}
+            <div className="relative mx-auto w-fit mb-7">
+              <div className="w-24 h-24 rounded-full border-2 border-[#c4952a]/30 bg-[#c4952a]/[0.07] flex items-center justify-center">
+                <span className="font-display text-[#c4952a] text-3xl">
+                  {selected.firstName[0]}{selected.lastName[0]}
+                </span>
               </div>
+            </div>
 
-              <div className="px-8 py-8 space-y-3">
-                <p className="text-charcoal-600 text-base mb-6">
-                  Is this you? Tap confirm to check in.
-                </p>
+            <h2 className="font-display text-white text-4xl mb-1.5">
+              {selected.firstName} {selected.lastName}
+            </h2>
+            {selected.company && (
+              <p className="text-white/35 text-sm mb-1">{selected.company}</p>
+            )}
+            {selected.designation && (
+              <p className="text-white/20 text-xs">{selected.designation}</p>
+            )}
 
-                <button
-                  onClick={handleConfirm}
-                  disabled={confirming}
-                  className="btn-primary w-full flex items-center justify-center gap-3 text-lg py-4"
-                >
-                  {confirming ? (
-                    <>
-                      <svg
-                        className="animate-spin h-5 w-5 text-white"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                      >
-                        <circle
-                          className="opacity-25"
-                          cx="12"
-                          cy="12"
-                          r="10"
-                          stroke="currentColor"
-                          strokeWidth="4"
-                        />
-                        <path
-                          className="opacity-75"
-                          fill="currentColor"
-                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                        />
-                      </svg>
-                      Checking in...
-                    </>
-                  ) : (
-                    <>
-                      <svg
-                        className="w-5 h-5"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                        strokeWidth={2.5}
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          d="M5 13l4 4L19 7"
-                        />
-                      </svg>
-                      Yes, Check Me In
-                    </>
-                  )}
-                </button>
+            <div className="flex items-center gap-4 my-8">
+              <div className="h-px flex-1 bg-white/[0.08]" />
+              <span className="text-white/25 text-[10px] tracking-[0.3em] uppercase">Confirm Identity</span>
+              <div className="h-px flex-1 bg-white/[0.08]" />
+            </div>
 
-                <button
-                  onClick={resetToSearch}
-                  className="w-full text-charcoal-500 hover:text-charcoal-700 text-sm py-3 transition-colors"
-                >
-                  Not me — search again
-                </button>
-              </div>
+            <div className="space-y-3">
+              <button
+                onClick={handleConfirm}
+                disabled={confirming}
+                className="w-full bg-[#c4952a] text-white text-base font-medium py-4 rounded-xl hover:bg-[#d4a844] active:scale-[0.99] transition-all flex items-center justify-center gap-3 disabled:opacity-50"
+              >
+                {confirming ? (
+                  <><Spinner className="w-5 h-5" /> Checking In...</>
+                ) : (
+                  <>
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                    </svg>
+                    Yes, Check Me In
+                  </>
+                )}
+              </button>
+
+              <button
+                onClick={resetToSearch}
+                className="w-full text-white/25 hover:text-white/50 text-sm py-3 transition-colors"
+              >
+                ← Not me, search again
+              </button>
             </div>
           </div>
         )}
 
-        {/* ── SUCCESS STAGE ── */}
+        {/* ── SUCCESS ── */}
         {stage === "success" && selected && (
-          <div className="w-full max-w-md text-center animate-fade-in-up">
-            <div className="bg-white rounded-3xl shadow-2xl px-8 py-12">
-              {/* Checkmark */}
-              <div className="w-24 h-24 bg-green-50 border-2 border-green-200 rounded-full flex items-center justify-center mx-auto mb-6">
-                <svg
-                  className="w-12 h-12 text-green-500"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth={2}
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M5 13l4 4L19 7"
-                  />
+          <div className="w-full max-w-md text-center animate-scale-in">
+            {/* Glow */}
+            <div className="relative mx-auto w-fit mb-8">
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="w-36 h-36 bg-green-500/10 rounded-full blur-2xl" />
+              </div>
+              <div className="relative w-24 h-24 rounded-full border-2 border-green-500/40 bg-green-500/[0.08] flex items-center justify-center">
+                <svg className="w-11 h-11 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
                 </svg>
               </div>
+            </div>
 
-              <h2 className="font-display text-4xl text-charcoal-900 mb-2">
-                Welcome!
-              </h2>
-              <p className="text-2xl text-charcoal-700 font-medium mb-1">
-                {selected.firstName} {selected.lastName}
-              </p>
-              {selected.company && (
-                <p className="text-charcoal-500 text-sm mb-6">
-                  {selected.company}
-                </p>
-              )}
+            <h2 className="font-display text-white text-6xl md:text-7xl mb-3">
+              Welcome!
+            </h2>
+            <p className="text-white/65 text-2xl font-light mb-1">
+              {selected.firstName} {selected.lastName}
+            </p>
+            {selected.company && (
+              <p className="text-white/30 text-sm mb-7">{selected.company}</p>
+            )}
+            {!selected.company && <div className="mb-7" />}
 
-              <div className="inline-flex items-center gap-2 px-4 py-2 bg-green-50 border border-green-200 rounded-full">
-                <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-                <span className="text-green-700 text-sm font-medium">
-                  Successfully Checked In
-                </span>
+            <div className="inline-flex items-center gap-2.5 bg-green-500/[0.08] border border-green-500/25 text-green-400 text-sm font-medium px-5 py-2.5 rounded-full mb-10">
+              <span className="w-2 h-2 bg-green-400 rounded-full" />
+              Successfully Checked In
+            </div>
+
+            {/* Countdown bar */}
+            <div>
+              <div className="h-0.5 bg-white/[0.07] rounded-full overflow-hidden">
+                <div className="h-full bg-white/20 rounded-full animate-countdown" />
               </div>
-
-              <p className="text-charcoal-400 text-xs mt-8">
-                Returning to home screen in a moment...
+              <p className="text-white/15 text-xs mt-2.5 tracking-wider">
+                Returning to home screen...
               </p>
             </div>
           </div>
         )}
 
-        {/* ── ALREADY CHECKED IN STAGE ── */}
+        {/* ── ALREADY IN ── */}
         {stage === "already_in" && selected && (
-          <div className="w-full max-w-md text-center animate-fade-in-up">
-            <div className="bg-white rounded-3xl shadow-2xl px-8 py-12">
-              <div className="w-24 h-24 bg-amber-50 border-2 border-amber-200 rounded-full flex items-center justify-center mx-auto mb-6">
-                <svg
-                  className="w-12 h-12 text-amber-500"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth={2}
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z"
-                  />
+          <div className="w-full max-w-md text-center animate-scale-in">
+            <div className="relative mx-auto w-fit mb-8">
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="w-36 h-36 bg-amber-500/8 rounded-full blur-2xl" />
+              </div>
+              <div className="relative w-24 h-24 rounded-full border-2 border-amber-500/35 bg-amber-500/[0.06] flex items-center justify-center">
+                <svg className="w-10 h-10 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
                 </svg>
               </div>
+            </div>
 
-              <h2 className="font-display text-3xl text-charcoal-900 mb-2">
-                Already Checked In
-              </h2>
-              <p className="text-xl text-charcoal-700 font-medium mb-2">
-                {selected.firstName} {selected.lastName}
+            <h2 className="font-display text-white text-4xl mb-2">
+              Already Checked In
+            </h2>
+            <p className="text-white/55 text-xl font-light mb-1">
+              {selected.firstName} {selected.lastName}
+            </p>
+            {checkedInAt && (
+              <p className="text-white/25 text-sm mb-7">
+                Checked in at{" "}
+                {new Date(checkedInAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
               </p>
-              {checkedInAt && (
-                <p className="text-charcoal-500 text-sm mb-6">
-                  Checked in at{" "}
-                  {new Date(checkedInAt).toLocaleTimeString([], {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
-                </p>
-              )}
+            )}
+            {!checkedInAt && <div className="mb-7" />}
 
-              <div className="inline-flex items-center gap-2 px-4 py-2 bg-amber-50 border border-amber-200 rounded-full mb-6">
-                <span className="w-2 h-2 bg-amber-500 rounded-full"></span>
-                <span className="text-amber-700 text-sm font-medium">
-                  Duplicate Entry
-                </span>
+            <div className="inline-flex items-center gap-2.5 bg-amber-500/[0.07] border border-amber-500/25 text-amber-400 text-sm font-medium px-5 py-2.5 rounded-full mb-10">
+              <span className="w-2 h-2 bg-amber-400 rounded-full" />
+              Duplicate Entry
+            </div>
+
+            <div>
+              <div className="h-0.5 bg-white/[0.07] rounded-full overflow-hidden">
+                <div className="h-full bg-white/15 rounded-full animate-countdown" />
               </div>
-
-              <p className="text-charcoal-400 text-xs mt-4">
-                Returning to home screen in a moment...
+              <p className="text-white/15 text-xs mt-2.5 tracking-wider">
+                Returning to home screen...
               </p>
             </div>
           </div>
         )}
 
-        {/* ── NOT FOUND / GUEST FORM STAGE ── */}
+        {/* ── NOT FOUND / GUEST ── */}
         {stage === "not_found" && (
-          <div className="w-full max-w-md animate-fade-in-up">
-            <div className="bg-white rounded-3xl shadow-2xl overflow-hidden">
-              <div className="bg-charcoal-900 px-8 py-7 text-center">
-                <h2 className="font-display text-2xl text-white mb-1">
+          <div className="w-full max-w-md animate-scale-in">
+            <div className="bg-white/[0.03] border border-white/10 rounded-3xl overflow-hidden">
+              {/* Header */}
+              <div className="px-8 py-7 border-b border-white/[0.07] text-center">
+                <h2 className="font-display text-white text-2xl mb-1">
                   Register as Guest
                 </h2>
-                <p className="text-charcoal-400 text-sm">
-                  Enter your details to check in
-                </p>
+                <p className="text-white/30 text-sm">Enter your details to check in</p>
               </div>
 
-              <form onSubmit={handleGuestSubmit} className="px-8 py-8 space-y-4">
-                {/* Name Row */}
+              {/* Form */}
+              <form onSubmit={handleGuestSubmit} className="px-8 py-7 space-y-4">
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-xs font-medium text-charcoal-600 tracking-wider uppercase mb-1.5">
-                      First Name
-                    </label>
+                    <label className="block text-[10px] font-semibold text-white/30 tracking-[0.15em] uppercase mb-2">First Name</label>
                     <input
                       type="text"
                       value={guestForm.firstName}
-                      onChange={(e) =>
-                        setGuestForm((p) => ({
-                          ...p,
-                          firstName: e.target.value,
-                        }))
-                      }
+                      onChange={(e) => setGuestForm(p => ({ ...p, firstName: e.target.value }))}
                       placeholder="John"
-                      className="input-luxury !py-3"
+                      className="input-dark"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-charcoal-600 tracking-wider uppercase mb-1.5">
-                      Last Name
-                    </label>
+                    <label className="block text-[10px] font-semibold text-white/30 tracking-[0.15em] uppercase mb-2">Last Name</label>
                     <input
                       type="text"
                       value={guestForm.lastName}
-                      onChange={(e) =>
-                        setGuestForm((p) => ({
-                          ...p,
-                          lastName: e.target.value,
-                        }))
-                      }
+                      onChange={(e) => setGuestForm(p => ({ ...p, lastName: e.target.value }))}
                       placeholder="Doe"
-                      className="input-luxury !py-3"
+                      className="input-dark"
                     />
                   </div>
                 </div>
 
-                {/* Email — required */}
                 <div>
-                  <label className="block text-xs font-medium text-charcoal-600 tracking-wider uppercase mb-1.5">
-                    Email Address <span className="text-red-500">*</span>
+                  <label className="block text-[10px] font-semibold text-white/30 tracking-[0.15em] uppercase mb-2">
+                    Email Address <span className="text-[#c4952a]">*</span>
                   </label>
                   <input
                     type="email"
                     required
                     value={guestForm.email}
-                    onChange={(e) =>
-                      setGuestForm((p) => ({ ...p, email: e.target.value }))
-                    }
-                    placeholder="john@example.com"
-                    className="input-luxury !py-3"
+                    onChange={(e) => setGuestForm(p => ({ ...p, email: e.target.value }))}
+                    placeholder="john@company.com"
+                    className="input-dark"
                   />
                 </div>
 
-                {/* Phone */}
                 <div>
-                  <label className="block text-xs font-medium text-charcoal-600 tracking-wider uppercase mb-1.5">
-                    Phone Number
-                  </label>
+                  <label className="block text-[10px] font-semibold text-white/30 tracking-[0.15em] uppercase mb-2">Mobile Number</label>
                   <input
                     type="tel"
                     value={guestForm.phone}
-                    onChange={(e) =>
-                      setGuestForm((p) => ({ ...p, phone: e.target.value }))
-                    }
+                    onChange={(e) => setGuestForm(p => ({ ...p, phone: e.target.value }))}
                     placeholder="+971 50 000 0000"
-                    className="input-luxury !py-3"
+                    className="input-dark"
                   />
                 </div>
 
                 {guestError && (
-                  <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
-                    <p className="text-red-600 text-sm">{guestError}</p>
-                  </div>
+                  <p className="text-red-400 text-sm animate-fade-in">{guestError}</p>
                 )}
 
                 <button
                   type="submit"
                   disabled={guestLoading}
-                  className="btn-gold w-full flex items-center justify-center gap-2 py-4 text-base mt-2"
+                  className="w-full bg-[#c4952a] text-white font-medium py-4 rounded-xl hover:bg-[#d4a844] active:scale-[0.99] transition-all flex items-center justify-center gap-2.5 disabled:opacity-50 mt-2"
                 >
                   {guestLoading ? (
-                    <>
-                      <svg
-                        className="animate-spin h-5 w-5 text-white"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                      >
-                        <circle
-                          className="opacity-25"
-                          cx="12"
-                          cy="12"
-                          r="10"
-                          stroke="currentColor"
-                          strokeWidth="4"
-                        />
-                        <path
-                          className="opacity-75"
-                          fill="currentColor"
-                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                        />
-                      </svg>
-                      Checking In...
-                    </>
+                    <><Spinner className="w-5 h-5" /> Checking In...</>
                   ) : (
                     "Check In as Guest"
                   )}
@@ -657,7 +498,7 @@ export default function KioskPage() {
                 <button
                   type="button"
                   onClick={resetToSearch}
-                  className="w-full text-charcoal-500 hover:text-charcoal-700 text-sm py-2 transition-colors"
+                  className="w-full text-white/20 hover:text-white/40 text-sm py-2 transition-colors"
                 >
                   ← Back to search
                 </button>
@@ -667,10 +508,10 @@ export default function KioskPage() {
         )}
       </main>
 
-      {/* Footer */}
-      <footer className="py-4 text-center border-t border-white/5">
-        <p className="text-charcoal-600 text-xs tracking-wider">
-          Need help? Please approach a staff member.
+      {/* ─── Footer ─── */}
+      <footer className="relative z-10 py-4 px-8 border-t border-white/[0.05] text-center">
+        <p className="text-white/15 text-xs tracking-widest uppercase">
+          Need assistance? Please approach a staff member.
         </p>
       </footer>
     </div>
