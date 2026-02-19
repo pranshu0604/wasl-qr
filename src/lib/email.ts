@@ -11,7 +11,7 @@ interface SendQREmailParams {
 }
 
 export async function sendQREmail({ to, firstName, lastName, qrToken }: SendQREmailParams) {
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000");
   const scanUrl = `${appUrl}/api/verify/${qrToken}`;
   const qrDataUrl = await generateQRCodeDataURL(scanUrl);
 

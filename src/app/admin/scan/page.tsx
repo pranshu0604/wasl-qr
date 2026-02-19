@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { Html5Qrcode } from "html5-qrcode";
 
 interface CheckinResult {
   type: "success" | "warning" | "error";
@@ -13,7 +12,7 @@ export default function ScanPage() {
   const [scanning, setScanning] = useState(false);
   const [result, setResult] = useState<CheckinResult | null>(null);
   const [processing, setProcessing] = useState(false);
-  const scannerRef = useRef<Html5Qrcode | null>(null);
+  const scannerRef = useRef<unknown>(null);
   const readerRef = useRef<HTMLDivElement>(null);
 
   const handleScan = useCallback(async (decodedText: string) => {
@@ -78,6 +77,8 @@ export default function ScanPage() {
     if (!readerRef.current) return;
 
     try {
+      // Dynamic import — html5-qrcode uses browser APIs, cannot be imported at top level
+      const { Html5Qrcode } = await import("html5-qrcode");
       const scanner = new Html5Qrcode("qr-reader");
       scannerRef.current = scanner;
 
@@ -105,8 +106,9 @@ export default function ScanPage() {
   const stopScanner = useCallback(async () => {
     if (scannerRef.current) {
       try {
-        await scannerRef.current.stop();
-        scannerRef.current.clear();
+        const scanner = scannerRef.current as { stop: () => Promise<void>; clear: () => void };
+        await scanner.stop();
+        scanner.clear();
       } catch {
         // ignore
       }
@@ -118,7 +120,8 @@ export default function ScanPage() {
   useEffect(() => {
     return () => {
       if (scannerRef.current) {
-        scannerRef.current.stop().catch(() => {});
+        const scanner = scannerRef.current as { stop: () => Promise<void> };
+        scanner.stop().catch(() => {});
       }
     };
   }, []);
