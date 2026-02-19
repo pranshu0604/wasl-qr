@@ -6,16 +6,27 @@ export async function POST(req: NextRequest) {
     const { id } = await req.json();
     if (!id) return NextResponse.json({ error: "Attendee ID required" }, { status: 400 });
 
-    const attendee = await prisma.attendee.findUnique({ where: { id } });
-    if (!attendee) return NextResponse.json({ error: "Attendee not found" }, { status: 404 });
-
-    const updated = await prisma.attendee.update({
-      where: { id },
-      data: {
-        checkedIn: !attendee.checkedIn,
-        checkedInAt: !attendee.checkedIn ? new Date() : null,
+    // Serializable transaction eliminates the TOCTOU race between reading
+    // checkedIn and writing the toggled value under concurrent requests.
+    const updated = await prisma.$transaction(
+      async (tx) => {
+        const current = await tx.attendee.findUnique({
+          where: { id },
+          select: { checkedIn: true },
+        });
+        if (!current) return null;
+        return tx.attendee.update({
+          where: { id },
+          data: {
+            checkedIn: !current.checkedIn,
+            checkedInAt: !current.checkedIn ? new Date() : null,
+          },
+        });
       },
-    });
+      { isolationLevel: "Serializable" }
+    );
+
+    if (!updated) return NextResponse.json({ error: "Attendee not found" }, { status: 404 });
 
     return NextResponse.json({ checkedIn: updated.checkedIn, checkedInAt: updated.checkedInAt });
   } catch (error) {

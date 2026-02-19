@@ -26,7 +26,7 @@ export async function POST(req: NextRequest) {
 
     if (typeof secret === "string" && ADMIN_PASSWORDS.has(secret)) {
       // Store a signed session token — never the raw password
-      const sessionToken = createSessionToken(secret);
+      const sessionToken = await createSessionToken(secret);
       const res = NextResponse.json({ ok: true });
       res.cookies.set("admin_session", sessionToken, {
         path: "/",

@@ -10,12 +10,12 @@ const ADMIN_PASSWORDS = new Set(
     .filter(Boolean)
 );
 
-function isValidAdminSession(req: NextRequest): boolean {
+async function isValidAdminSession(req: NextRequest): Promise<boolean> {
   // Browser sessions: verify the HMAC-signed cookie (never stores raw password)
   const cookie = req.cookies.get("admin_session")?.value;
   if (cookie) {
     try {
-      const secret = verifySessionToken(cookie);
+      const secret = await verifySessionToken(cookie);
       if (secret && ADMIN_PASSWORDS.has(secret)) return true;
     } catch {
       // SESSION_SECRET not configured or token tampered — deny
@@ -39,19 +39,19 @@ const PROTECTED_API_ROUTES = [
   "/api/self-checkin",
 ];
 
-export function middleware(req: NextRequest) {
+export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
   // Protect admin UI pages
   if (pathname.startsWith("/admin")) {
-    if (!isValidAdminSession(req)) {
+    if (!(await isValidAdminSession(req))) {
       return NextResponse.redirect(new URL("/login", req.url));
     }
   }
 
   // Protect admin API routes
   if (PROTECTED_API_ROUTES.some((r) => pathname.startsWith(r))) {
-    if (!isValidAdminSession(req)) {
+    if (!(await isValidAdminSession(req))) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
   }
