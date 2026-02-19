@@ -1,7 +1,13 @@
-import { Resend } from "resend";
+import nodemailer from "nodemailer";
 import { generateQRCodeDataURL } from "./qr";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: process.env.GMAIL_USER,
+    pass: process.env.GMAIL_APP_PASSWORD,
+  },
+});
 
 interface SendQREmailParams {
   to: string;
@@ -18,9 +24,9 @@ export async function sendQREmail({ to, firstName, lastName, qrToken }: SendQREm
   // Extract base64 data from data URL
   const base64Data = qrDataUrl.split(",")[1];
 
-  const { data, error } = await resend.emails.send({
-    from: "Event Registration <onboarding@resend.dev>",
-    to: [to],
+  await transporter.sendMail({
+    from: `"Event Registration" <${process.env.GMAIL_USER}>`,
+    to,
     subject: "Your Event Pass — QR Code Enclosed",
     html: `
 <!DOCTYPE html>
@@ -101,19 +107,9 @@ export async function sendQREmail({ to, firstName, lastName, qrToken }: SendQREm
     attachments: [
       {
         filename: "qrcode.png",
-        content: base64Data,
-        contentType: "image/png",
+        content: Buffer.from(base64Data, "base64"),
+        cid: "qrcode",
       },
     ],
-    headers: {
-      "X-Entity-Ref-ID": qrToken,
-    },
   });
-
-  if (error) {
-    console.error("Email send error:", error);
-    throw new Error(`Failed to send email: ${error.message}`);
-  }
-
-  return data;
 }
