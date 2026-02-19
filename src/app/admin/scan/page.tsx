@@ -1,7 +1,17 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import Link from "next/link";
+import dynamic from "next/dynamic";
+
+// next/dynamic with ssr:false guarantees html5-qrcode:
+//  1. Never runs on the server (no SSR crash)
+//  2. Is NOT prefetched on page load (no init-time browser API crash)
+//  3. Only loads when <QRScanner> is mounted (button click → scanning=true)
+const QRScanner = dynamic(() => import("@/components/QRScanner"), {
+  ssr: false,
+  loading: () => null,
+});
 
 interface CheckinResult {
   type: "success" | "warning" | "error";
@@ -12,29 +22,23 @@ interface CheckinResult {
 export default function ScanPage() {
   const [scanning, setScanning] = useState(false);
   const [result, setResult] = useState<CheckinResult | null>(null);
-  const [startError, setStartError] = useState<string | null>(null);
+  const [scannerError, setScannerError] = useState<string | null>(null);
 
-  // useRef instead of useState — the scanner library holds a stale reference to
-  // the callback passed at start() time, so useState would always read the old
-  // captured value. The ref is always current regardless of closure age.
+  // Ref prevents double-processing when scanner fires multiple times
   const processingRef = useRef(false);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const scannerRef = useRef<any>(null);
-  const readerRef = useRef<HTMLDivElement>(null);
 
   const handleScan = useCallback(async (decodedText: string) => {
     if (processingRef.current) return;
     processingRef.current = true;
 
     try {
-      // Accept both a full verify URL and a bare token
       let token = decodedText.trim();
       try {
         const url = new URL(decodedText);
         const parts = url.pathname.split("/").filter(Boolean);
         token = parts[parts.length - 1] ?? token;
       } catch {
-        // decodedText is already the raw token — use it as-is
+        // bare token — use as-is
       }
 
       if (!token) {
@@ -48,7 +52,6 @@ export default function ScanPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ qrToken: token }),
       });
-
       const data = await res.json();
 
       if (res.status === 404) {
@@ -69,62 +72,28 @@ export default function ScanPage() {
         });
       }
     } catch {
-      setResult({ type: "error", name: "", message: "Could not process QR code. Try Manual Entry." });
+      setResult({ type: "error", name: "", message: "Network error. Try Manual Entry." });
     }
 
     setTimeout(() => { setResult(null); processingRef.current = false; }, 4000);
-  }, []); // no state deps — reads processingRef directly
+  }, []);
 
-  const startScanner = useCallback(async () => {
-    if (!readerRef.current) return;
-    setStartError(null);
-    try {
-      // Dynamic import — html5-qrcode accesses window/document at module load
-      // time which crashes Next.js SSR. Import only on button click (browser only).
-      const { Html5Qrcode } = await import("html5-qrcode");
-      const scanner = new Html5Qrcode("qr-reader");
-      scannerRef.current = scanner;
-      await scanner.start(
-        { facingMode: "environment" },
-        { fps: 10, qrbox: { width: 250, height: 250 } },
-        handleScan,
-        () => {} // ignore per-frame decode failures
-      );
-      setScanning(true);
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : String(err);
-      if (msg.toLowerCase().includes("permission") || msg.toLowerCase().includes("denied") || msg.toLowerCase().includes("notallowed")) {
-        setStartError("Camera access denied. Please allow camera permissions and try again.");
-      } else if (msg.toLowerCase().includes("camera") || msg.toLowerCase().includes("device")) {
-        setStartError("No camera found. Make sure your device has a camera.");
-      } else {
-        setStartError("Could not start scanner. Please try again or use Manual Entry.");
-      }
-      scannerRef.current = null;
-    }
-  }, [handleScan]);
+  const handleScannerError = useCallback((msg: string) => {
+    setScannerError(msg);
+    setScanning(false);
+  }, []);
 
-  const stopScanner = useCallback(async () => {
-    if (scannerRef.current) {
-      try {
-        await scannerRef.current.stop();
-        scannerRef.current.clear();
-      } catch { /* scanner may already be stopped */ }
-      scannerRef.current = null;
-    }
+  const startScanning = () => {
+    setScannerError(null);
+    setResult(null);
+    processingRef.current = false;
+    setScanning(true);
+  };
+
+  const stopScanning = () => {
     setScanning(false);
     processingRef.current = false;
-  }, []);
-
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => {
-      if (scannerRef.current) {
-        scannerRef.current.stop().catch(() => {});
-        scannerRef.current = null;
-      }
-    };
-  }, []);
+  };
 
   const resultStyles = {
     success: { wrap: "bg-green-50 border-green-200", iconBg: "bg-green-100", icon: "text-green-600", text: "text-green-700" },
@@ -141,19 +110,24 @@ export default function ScanPage() {
 
       <div className="bg-white rounded-2xl border border-[#e8e2d5] overflow-hidden">
         <div className="p-4 sm:p-6">
-          {/* Camera viewport */}
+
+          {/* Camera viewport — QRScanner mounts here on start */}
           <div
-            ref={readerRef}
             id="qr-reader"
             className="w-full aspect-square bg-[#0a0a0a] rounded-xl overflow-hidden relative"
           >
+            {/* QRScanner dynamically imported with ssr:false — only mounts when scanning=true */}
+            {scanning && (
+              <QRScanner onScan={handleScan} onError={handleScannerError} />
+            )}
+
             {!scanning && (
-              <div className="absolute inset-0 flex flex-col items-center justify-center gap-5 pointer-events-none">
-                <div className="absolute top-6 left-6 sm:top-8 sm:left-8 w-7 h-7 sm:w-8 sm:h-8 border-t-2 border-l-2 border-[#c4952a]/30 rounded-tl" />
-                <div className="absolute top-6 right-6 sm:top-8 sm:right-8 w-7 h-7 sm:w-8 sm:h-8 border-t-2 border-r-2 border-[#c4952a]/30 rounded-tr" />
-                <div className="absolute bottom-6 left-6 sm:bottom-8 sm:left-8 w-7 h-7 sm:w-8 sm:h-8 border-b-2 border-l-2 border-[#c4952a]/30 rounded-bl" />
-                <div className="absolute bottom-6 right-6 sm:bottom-8 sm:right-8 w-7 h-7 sm:w-8 sm:h-8 border-b-2 border-r-2 border-[#c4952a]/30 rounded-br" />
-                <svg className="w-12 h-12 sm:w-14 sm:h-14 text-white/[0.08]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
+              <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 pointer-events-none">
+                <div className="absolute top-6 left-6 w-7 h-7 border-t-2 border-l-2 border-[#c4952a]/30 rounded-tl" />
+                <div className="absolute top-6 right-6 w-7 h-7 border-t-2 border-r-2 border-[#c4952a]/30 rounded-tr" />
+                <div className="absolute bottom-6 left-6 w-7 h-7 border-b-2 border-l-2 border-[#c4952a]/30 rounded-bl" />
+                <div className="absolute bottom-6 right-6 w-7 h-7 border-b-2 border-r-2 border-[#c4952a]/30 rounded-br" />
+                <svg className="w-12 h-12 text-white/[0.08]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 013.75 9.375v-4.5zM3.75 14.625c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5a1.125 1.125 0 01-1.125-1.125v-4.5zM13.5 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 0113.5 9.375v-4.5z" />
                 </svg>
                 <p className="text-white/20 text-sm tracking-wide">Camera inactive</p>
@@ -161,17 +135,17 @@ export default function ScanPage() {
             )}
           </div>
 
-          {/* Start error message */}
-          {startError && (
+          {/* Camera error */}
+          {scannerError && (
             <div className="mt-3 px-4 py-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
-              {startError}
+              {scannerError}
             </div>
           )}
 
           <div className="mt-4">
             {!scanning ? (
               <button
-                onClick={startScanner}
+                onClick={startScanning}
                 className="w-full bg-[#c4952a] text-white text-sm font-medium py-3.5 rounded-lg hover:bg-[#d4a844] active:bg-[#b8841f] transition-colors flex items-center justify-center gap-2.5"
               >
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -182,7 +156,7 @@ export default function ScanPage() {
               </button>
             ) : (
               <button
-                onClick={stopScanner}
+                onClick={stopScanning}
                 className="w-full bg-[#0a0a0a] text-white text-sm font-medium py-3.5 rounded-lg hover:bg-[#1a1a1a] active:bg-[#2a2a2a] transition-colors"
               >
                 Stop Scanner
@@ -191,7 +165,7 @@ export default function ScanPage() {
           </div>
         </div>
 
-        {/* Scan result banner */}
+        {/* Scan result */}
         {result && (
           <div className={`p-4 sm:p-5 border-t ${resultStyles[result.type].wrap}`}>
             <div className="flex items-start gap-3 sm:gap-4">
