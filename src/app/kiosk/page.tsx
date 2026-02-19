@@ -80,15 +80,15 @@ export default function KioskPage() {
       const res = await fetch("/api/register", {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          firstName: guestForm.firstName.trim() || "Guest",
-          lastName:  guestForm.lastName.trim()  || "Attendee",
+          firstName: guestForm.firstName.trim(),
+          lastName:  guestForm.lastName.trim(),
           email:     guestForm.email.trim(),
           phone:     guestForm.phone.trim(),
         }),
       });
       const data = await res.json();
       if (!res.ok && res.status !== 409) { setGuestError(data.error || "Registration failed."); return; }
-      setSelected({ id: data.id || "", firstName: guestForm.firstName.trim() || "Guest", lastName: guestForm.lastName.trim() || "", company: null, checkedIn: false });
+      setSelected({ id: data.id || "", firstName: guestForm.firstName.trim(), lastName: guestForm.lastName.trim(), company: null, checkedIn: false });
       setStage("registered");
     } catch { setGuestError("Something went wrong. Please try again."); }
     finally { setGuestLoading(false); }
@@ -225,11 +225,11 @@ export default function KioskPage() {
                 <div className="grid grid-cols-2 gap-5">
                   <div>
                     <label className="block text-[9px] font-bold text-white/30 tracking-[0.25em] uppercase mb-2">First Name</label>
-                    <input type="text" value={guestForm.firstName} onChange={(e) => setGuestForm(p => ({ ...p, firstName: e.target.value }))} placeholder="John" className="input-dark" />
+                    <input type="text" required value={guestForm.firstName} onChange={(e) => setGuestForm(p => ({ ...p, firstName: e.target.value }))} placeholder="John" className="input-dark" />
                   </div>
                   <div>
                     <label className="block text-[9px] font-bold text-white/30 tracking-[0.25em] uppercase mb-2">Last Name</label>
-                    <input type="text" value={guestForm.lastName} onChange={(e) => setGuestForm(p => ({ ...p, lastName: e.target.value }))} placeholder="Doe" className="input-dark" />
+                    <input type="text" required value={guestForm.lastName} onChange={(e) => setGuestForm(p => ({ ...p, lastName: e.target.value }))} placeholder="Doe" className="input-dark" />
                   </div>
                 </div>
                 <div>

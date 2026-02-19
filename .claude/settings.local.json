@@ -13,7 +13,14 @@
       "Bash(npx prisma db push:*)",
       "Bash(npx prisma generate:*)",
       "Bash(curl:*)",
-      "Bash(npx next build:*)"
+      "Bash(npm run db:generate:*)",
+      "Bash(npm run db:push:*)",
+      "Bash(start cmd /c \"npm run dev\" timeout /t 10 /nobreak)",
+      "Bash(ping:*)",
+      "Bash(1 curl -s http://localhost:3000)",
+      "Bash(git pull:*)",
+      "Bash(git stash:*)",
+      "Bash(git restore:*)"
     ]
   }
 }

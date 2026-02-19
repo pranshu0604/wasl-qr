@@ -95,7 +95,19 @@ export async function POST(req: NextRequest) {
       id: attendee.id,
       message: "Registration successful. QR pass sent to your email.",
     });
-  } catch (error) {
+  } catch (error: unknown) {
+    // P2002 = Prisma unique constraint violation — race condition where two
+    // simultaneous requests both pass the duplicate check then one fails on create
+    if (
+      error instanceof Error &&
+      "code" in error &&
+      (error as { code: string }).code === "P2002"
+    ) {
+      return NextResponse.json(
+        { error: "This email or phone is already registered." },
+        { status: 409 }
+      );
+    }
     console.error("Registration error:", error);
     return NextResponse.json(
       { error: "Registration failed. Please try again." },

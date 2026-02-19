@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import PhoneInput from "@/components/PhoneInput";
 
 export default function RegisterPage() {
@@ -60,24 +59,19 @@ export default function RegisterPage() {
   return (
     <div className="min-h-screen flex flex-col lg:flex-row">
 
-      {/* ════════════════════════════════════════
-          LEFT PANEL — Brand & Hero Typography
-          ════════════════════════════════════════ */}
-      <div className="relative lg:w-[45%] bg-[#080808] flex flex-col justify-between overflow-hidden min-h-[300px] lg:min-h-screen">
+      {/* LEFT PANEL */}
+      <div className="relative lg:w-[45%] bg-[#080808] flex flex-col justify-between overflow-hidden min-h-[200px] sm:min-h-[260px] lg:min-h-screen">
 
-        {/* Thin vertical gold accent line — left edge */}
         <div className="absolute left-0 top-0 bottom-0 w-[2px] bg-gradient-to-b from-transparent via-[#c4952a]/35 to-transparent pointer-events-none" />
 
-        {/* Large watermark year */}
         <div
           className="absolute bottom-0 right-0 font-display font-bold text-white select-none pointer-events-none leading-none"
-          style={{ fontSize: "clamp(12rem, 28vw, 22rem)", opacity: 0.025, transform: "translate(15%, 10%)" }}
+          style={{ fontSize: "clamp(8rem, 22vw, 22rem)", opacity: 0.025, transform: "translate(15%, 10%)" }}
           aria-hidden
         >
           25
         </div>
 
-        {/* Subtle diagonal grid lines */}
         <div
           className="absolute inset-0 pointer-events-none opacity-[0.03]"
           style={{
@@ -87,7 +81,7 @@ export default function RegisterPage() {
         />
 
         {/* Top brand mark */}
-        <div className="relative z-10 pt-10 px-10 lg:pt-14 lg:px-14">
+        <div className="relative z-10 pt-6 px-6 sm:pt-10 sm:px-10 lg:pt-14 lg:px-14">
           <div className="flex items-center gap-3">
             <div className="w-8 h-px bg-[#c4952a]" />
             <span className="text-[#c4952a] text-[9px] tracking-[0.55em] uppercase font-semibold">
@@ -96,30 +90,28 @@ export default function RegisterPage() {
           </div>
         </div>
 
-        {/* Hero typography — the centrepiece */}
-        <div className="relative z-10 px-10 pb-10 lg:px-14 lg:pb-14">
+        {/* Hero typography */}
+        <div className="relative z-10 px-6 pb-6 sm:px-10 sm:pb-10 lg:px-14 lg:pb-14">
           <h1
-            className="font-display text-white leading-[0.9] mb-8"
-            style={{ fontSize: "clamp(3.5rem, 7vw, 6.5rem)" }}
+            className="font-display text-white leading-[0.9] mb-5 sm:mb-8"
+            style={{ fontSize: "clamp(2.8rem, 10vw, 6.5rem)" }}
           >
             Reserve<br />
             Your<br />
             <em className="not-italic text-[#c4952a]">Invitation.</em>
           </h1>
 
-          {/* Ornamental rule */}
-          <div className="flex items-center gap-5 mb-7">
+          <div className="flex items-center gap-5 mb-5 sm:mb-7">
             <div className="w-10 h-px bg-[#c4952a]/50" />
             <div className="w-1.5 h-1.5 rounded-full bg-[#c4952a]/50" />
             <div className="flex-1 h-px bg-[#c4952a]/15" />
           </div>
 
-          <p className="text-white/30 text-[13px] leading-[1.8] max-w-[260px]">
+          <p className="hidden sm:block text-white/30 text-[13px] leading-[1.8] max-w-[260px]">
             A curated evening of exceptional properties and exclusive real estate insights.
           </p>
 
-          {/* Bottom meta */}
-          <div className="mt-12 flex items-center gap-2.5">
+          <div className="mt-6 sm:mt-12 flex items-center gap-2.5">
             <div className="w-1.5 h-1.5 rounded-full bg-[#c4952a] animate-pulse-gold" />
             <span className="text-white/20 text-[11px] tracking-[0.2em]">
               QR pass delivered to your inbox
@@ -128,16 +120,14 @@ export default function RegisterPage() {
         </div>
       </div>
 
-      {/* ════════════════════════════════════════
-          RIGHT PANEL — Registration Form
-          ════════════════════════════════════════ */}
+      {/* RIGHT PANEL — Form */}
       <div className="flex-1 bg-[#F7F3EC] flex flex-col">
-        <div className="flex-1 flex items-center justify-center px-8 py-14 lg:px-14 xl:px-20">
+        <div className="flex-1 flex items-start sm:items-center justify-center px-5 py-8 sm:px-8 sm:py-12 lg:px-14 xl:px-20">
           <div className="w-full max-w-[420px] animate-fade-in-up">
 
             {/* Form header */}
-            <div className="mb-11">
-              <div className="flex items-center gap-2 mb-7">
+            <div className="mb-7 sm:mb-11">
+              <div className="flex items-center gap-2 mb-5 sm:mb-7">
                 <div className="w-1.5 h-1.5 rounded-full bg-[#c4952a] animate-pulse-gold" />
                 <span className="text-[#c4952a] text-[9px] tracking-[0.5em] uppercase font-bold">
                   Registration Open
@@ -145,17 +135,17 @@ export default function RegisterPage() {
               </div>
               <h2
                 className="font-display text-[#080808] leading-[1.05]"
-                style={{ fontSize: "clamp(2rem, 4vw, 3rem)" }}
+                style={{ fontSize: "clamp(1.8rem, 6vw, 3rem)" }}
               >
                 Complete<br />Your Details
               </h2>
             </div>
 
             {/* Form */}
-            <form onSubmit={handleSubmit} className="space-y-7">
+            <form onSubmit={handleSubmit} className="space-y-5 sm:space-y-7">
 
-              {/* Name row */}
-              <div className="grid grid-cols-2 gap-6">
+              {/* Name row — stacked on mobile, side by side on sm+ */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 sm:gap-6">
                 <div>
                   <label className="block text-[9px] font-bold text-[#9A8F7E] tracking-[0.28em] uppercase mb-2">
                     First Name <span className="text-[#c4952a]">*</span>
@@ -240,11 +230,11 @@ export default function RegisterPage() {
               )}
 
               {/* CTA */}
-              <div className="pt-3">
+              <div className="pt-2 sm:pt-3">
                 <button
                   type="submit"
                   disabled={loading}
-                  className="group w-full bg-[#080808] text-white text-[11px] font-semibold tracking-[0.15em] uppercase py-5 flex items-center justify-center gap-4 hover:bg-[#c4952a] transition-colors duration-500 disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="group w-full bg-[#080808] text-white text-[11px] font-semibold tracking-[0.15em] uppercase py-4 sm:py-5 flex items-center justify-center gap-4 hover:bg-[#c4952a] transition-colors duration-500 disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   {loading ? (
                     <>
@@ -276,7 +266,7 @@ export default function RegisterPage() {
         </div>
 
         {/* Footer */}
-        <div className="py-4 px-10 flex items-center justify-center border-t border-[#E8DFD0]">
+        <div className="py-4 px-5 sm:px-10 flex items-center justify-center border-t border-[#E8DFD0]">
           <span className="text-[#C4B49A] text-[9px] tracking-[0.35em] uppercase">© Exclusive Event 2025</span>
         </div>
       </div>

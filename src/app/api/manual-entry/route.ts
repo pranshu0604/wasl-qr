@@ -18,46 +18,22 @@ export async function POST(req: NextRequest) {
     const company = body.company ? sanitize(body.company) : null;
     const designation = body.designation ? sanitize(body.designation) : null;
 
-    // Check if already exists
-    const existing = await prisma.attendee.findUnique({
+    // Atomic upsert — eliminates the race condition between the old
+    // findUnique check and create (which could cause P2002 under concurrent requests)
+    const isNew = !(await prisma.attendee.findUnique({ where: { email }, select: { id: true } }));
+    const attendee = await prisma.attendee.upsert({
       where: { email },
-    });
-
-    if (existing) {
-      // Check them in if not already
-      if (!existing.checkedIn) {
-        await prisma.attendee.update({
-          where: { id: existing.id },
-          data: { checkedIn: true, checkedInAt: new Date() },
-        });
-      }
-
-      return NextResponse.json({
-        id: existing.id,
-        alreadyExists: true,
-        message: `${existing.firstName} ${existing.lastName} found and checked in.`,
-      });
-    }
-
-    // Create new attendee with manual source and auto check-in
-    const attendee = await prisma.attendee.create({
-      data: {
-        firstName,
-        lastName,
-        email,
-        phone,
-        company,
-        designation,
-        source: "manual",
-        checkedIn: true,
-        checkedInAt: new Date(),
+      update: { checkedIn: true, checkedInAt: new Date() },
+      create: {
+        firstName, lastName, email, phone, company, designation,
+        source: "manual", checkedIn: true, checkedInAt: new Date(),
       },
     });
 
     return NextResponse.json({
       id: attendee.id,
-      alreadyExists: false,
-      message: `${attendee.firstName} ${attendee.lastName} registered and checked in.`,
+      alreadyExists: !isNew,
+      message: `${attendee.firstName} ${attendee.lastName} ${isNew ? "registered and" : "found and"} checked in.`,
     });
   } catch (error) {
     console.error("Manual entry error:", error);

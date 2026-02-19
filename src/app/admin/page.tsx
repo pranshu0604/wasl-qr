@@ -52,6 +52,7 @@ function AttendeeModal({
   const [checkinLoading, setCheckinLoading] = useState(false);
 
   const handleResend = async () => {
+    if (resendState === "loading") return; // prevent double-click
     setResendState("loading");
     try {
       const res = await fetch("/api/resend-qr", {
@@ -60,11 +61,11 @@ function AttendeeModal({
         body: JSON.stringify({ id: attendee.id }),
       });
       setResendState(res.ok ? "sent" : "error");
-      if (resendState === "sent") setTimeout(() => setResendState("idle"), 3000);
     } catch {
       setResendState("error");
     }
-    setTimeout(() => setResendState("idle"), 3500);
+    // Single timeout — always reset to idle after 3 s regardless of outcome
+    setTimeout(() => setResendState("idle"), 3000);
   };
 
   const handleDownload = () => {
@@ -390,6 +391,26 @@ export default function AdminDashboard() {
     }
   }, [attendees]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // RFC-4180 compliant CSV line parser — handles quoted fields with embedded commas
+  const parseCSVLine = (line: string): string[] => {
+    const result: string[] = [];
+    let current = "";
+    let inQuotes = false;
+    for (let i = 0; i < line.length; i++) {
+      const ch = line[i];
+      if (ch === '"') {
+        if (inQuotes && line[i + 1] === '"') { current += '"'; i++; } // escaped quote
+        else inQuotes = !inQuotes;
+      } else if (ch === "," && !inQuotes) {
+        result.push(current.trim()); current = "";
+      } else {
+        current += ch;
+      }
+    }
+    result.push(current.trim());
+    return result;
+  };
+
   const handleCSVImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -398,10 +419,10 @@ export default function AdminDashboard() {
     const lines = text.split("\n").filter((l) => l.trim());
     if (lines.length < 2) { setImportResult("CSV must have a header row and at least one data row."); return; }
 
-    const headers = lines[0].split(",").map((h) => h.trim().toLowerCase());
+    const headers = parseCSVLine(lines[0]).map((h) => h.toLowerCase());
     const attendeesToImport = [];
     for (let i = 1; i < lines.length; i++) {
-      const values = lines[i].split(",").map((v) => v.trim());
+      const values = parseCSVLine(lines[i]);
       const entry: Record<string, string> = {};
       headers.forEach((header, idx) => {
         const val = values[idx] || "";
