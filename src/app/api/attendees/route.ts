@@ -5,20 +5,22 @@ export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
     const search = searchParams.get("search") || "";
-    const filter = searchParams.get("filter") || "all"; // all, checked-in, not-checked-in
-    const page = parseInt(searchParams.get("page") || "1");
-    const limit = parseInt(searchParams.get("limit") || "50");
+    const filter = searchParams.get("filter") || "all";
+    const page = Math.max(1, parseInt(searchParams.get("page") || "1") || 1);
+    const limit = Math.min(100, Math.max(1, parseInt(searchParams.get("limit") || "50") || 50));
     const skip = (page - 1) * limit;
 
     const where: Record<string, unknown> = {};
 
     if (search) {
+      // Cap search length to prevent abuse
+      const q = search.slice(0, 100);
       where.OR = [
-        { firstName: { contains: search, mode: "insensitive" } },
-        { lastName: { contains: search, mode: "insensitive" } },
-        { email: { contains: search, mode: "insensitive" } },
-        { phone: { contains: search } },
-        { company: { contains: search, mode: "insensitive" } },
+        { firstName: { contains: q, mode: "insensitive" } },
+        { lastName: { contains: q, mode: "insensitive" } },
+        { email: { contains: q, mode: "insensitive" } },
+        { phone: { contains: q } },
+        { company: { contains: q, mode: "insensitive" } },
       ];
     }
 

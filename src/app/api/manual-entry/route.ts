@@ -1,21 +1,26 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { validateRegistration, sanitize } from "@/lib/validate";
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { firstName, lastName, email, phone, company, designation } = body;
 
-    if (!firstName || !lastName || !email || !phone) {
-      return NextResponse.json(
-        { error: "First name, last name, email, and phone are required." },
-        { status: 400 }
-      );
+    const validationError = validateRegistration(body);
+    if (validationError) {
+      return NextResponse.json({ error: validationError }, { status: 400 });
     }
+
+    const firstName = sanitize(body.firstName);
+    const lastName = sanitize(body.lastName);
+    const email = body.email.toLowerCase().trim();
+    const phone = sanitize(body.phone);
+    const company = body.company ? sanitize(body.company) : null;
+    const designation = body.designation ? sanitize(body.designation) : null;
 
     // Check if already exists
     const existing = await prisma.attendee.findUnique({
-      where: { email: email.toLowerCase().trim() },
+      where: { email },
     });
 
     if (existing) {
@@ -37,12 +42,12 @@ export async function POST(req: NextRequest) {
     // Create new attendee with manual source and auto check-in
     const attendee = await prisma.attendee.create({
       data: {
-        firstName: firstName.trim(),
-        lastName: lastName.trim(),
-        email: email.toLowerCase().trim(),
-        phone: phone.trim(),
-        company: company?.trim() || null,
-        designation: designation?.trim() || null,
+        firstName,
+        lastName,
+        email,
+        phone,
+        company,
+        designation,
         source: "manual",
         checkedIn: true,
         checkedInAt: new Date(),

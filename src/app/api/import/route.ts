@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { isValidEmail, sanitize } from "@/lib/validate";
+
+const MAX_IMPORT_SIZE = 500;
 
 export async function POST(req: NextRequest) {
   try {
@@ -9,6 +12,13 @@ export async function POST(req: NextRequest) {
     if (!Array.isArray(attendees) || attendees.length === 0) {
       return NextResponse.json(
         { error: "Please provide an array of attendees." },
+        { status: 400 }
+      );
+    }
+
+    if (attendees.length > MAX_IMPORT_SIZE) {
+      return NextResponse.json(
+        { error: `Import limited to ${MAX_IMPORT_SIZE} records at a time.` },
         { status: 400 }
       );
     }
@@ -27,6 +37,12 @@ export async function POST(req: NextRequest) {
           continue;
         }
 
+        if (!isValidEmail(email)) {
+          errors.push(`Skipped: Invalid email ${email}`);
+          skipped++;
+          continue;
+        }
+
         const existing = await prisma.attendee.findUnique({
           where: { email: email.toLowerCase().trim() },
         });
@@ -38,12 +54,12 @@ export async function POST(req: NextRequest) {
 
         await prisma.attendee.create({
           data: {
-            firstName: firstName.trim(),
-            lastName: lastName.trim(),
+            firstName: sanitize(firstName),
+            lastName: sanitize(lastName),
             email: email.toLowerCase().trim(),
-            phone: String(phone).trim(),
-            company: company?.trim() || null,
-            designation: designation?.trim() || null,
+            phone: sanitize(String(phone)),
+            company: company ? sanitize(company) : null,
+            designation: designation ? sanitize(designation) : null,
             source: "import",
           },
         });
@@ -60,7 +76,7 @@ export async function POST(req: NextRequest) {
       imported,
       skipped,
       total: attendees.length,
-      errors: errors.slice(0, 20), // Return first 20 errors max
+      errors: errors.slice(0, 20),
       message: `Imported ${imported} attendees. Skipped ${skipped}.`,
     });
   } catch (error) {

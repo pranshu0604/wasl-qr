@@ -27,6 +27,28 @@ export default function RegisterPage() {
     setLoading(true);
     setError("");
 
+    // Client-side validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const phoneRegex = /^[+]?[\d\s\-().]{7,20}$/;
+
+    if (!form.firstName.trim() || !form.lastName.trim()) {
+      setError("Please enter your full name.");
+      setLoading(false);
+      return;
+    }
+
+    if (!emailRegex.test(form.email.trim())) {
+      setError("Please enter a valid email address.");
+      setLoading(false);
+      return;
+    }
+
+    if (!phoneRegex.test(form.phone.trim())) {
+      setError("Please enter a valid phone number (7-20 digits).");
+      setLoading(false);
+      return;
+    }
+
     try {
       const res = await fetch("/api/register", {
         method: "POST",
