@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -52,10 +53,16 @@ export default function RegisterPage() {
     <div className="min-h-screen bg-[#f5f5f0] flex flex-col">
       {/* Header */}
       <header className="bg-charcoal-900 py-6">
-        <div className="max-w-7xl mx-auto px-6 text-center">
+        <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
           <h1 className="font-display text-gold-400 text-2xl md:text-3xl tracking-[0.2em] uppercase">
             Exclusive Event
           </h1>
+          <Link
+            href="/admin"
+            className="text-charcoal-400 hover:text-white text-sm transition-colors"
+          >
+            Admin Panel
+          </Link>
         </div>
       </header>
 
