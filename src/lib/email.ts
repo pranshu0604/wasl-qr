@@ -102,7 +102,7 @@ export async function sendQREmail({ to, firstName, lastName, qrToken }: SendQREm
       {
         filename: "qrcode.png",
         content: base64Data,
-        content_type: "image/png",
+        contentType: "image/png",
       },
     ],
     headers: {
