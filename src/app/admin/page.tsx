@@ -100,18 +100,18 @@ function AttendeeModal({
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-2xl shadow-2xl w-full max-w-[680px] overflow-hidden animate-scale-in"
+        className="bg-white rounded-2xl shadow-2xl w-full max-w-[680px] overflow-hidden animate-scale-in flex flex-col max-h-[calc(100dvh-2rem)]"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Header */}
-        <div className="flex items-start justify-between px-6 py-5 border-b border-[#f0e8d8] bg-[#faf7f2]">
+        {/* Header — sticky */}
+        <div className="flex-shrink-0 flex items-start justify-between px-4 sm:px-6 py-4 sm:py-5 border-b border-[#f0e8d8] bg-[#faf7f2]">
           <div>
             <h2 className="font-display text-[#0a0a0a] text-xl leading-tight">
               {attendee.firstName} {attendee.lastName}
             </h2>
             <p className="text-[#8a7f6e] text-sm mt-0.5">{attendee.email}</p>
           </div>
-          <div className="flex items-center gap-3 ml-4 flex-shrink-0">
+          <div className="flex items-center gap-2 sm:gap-3 ml-3 sm:ml-4 flex-shrink-0">
             {attendee.checkedIn ? (
               <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium bg-green-50 text-green-600 border border-green-200">
                 <span className="w-1.5 h-1.5 bg-green-500 rounded-full" />
@@ -134,10 +134,10 @@ function AttendeeModal({
           </div>
         </div>
 
-        {/* Body */}
-        <div className="flex flex-col md:flex-row">
+        {/* Body — scrollable */}
+        <div className="flex flex-col sm:flex-row overflow-y-auto">
           {/* Left: Details */}
-          <div className="flex-1 p-6 space-y-4">
+          <div className="flex-1 p-4 sm:p-6 space-y-3 sm:space-y-4">
             <p className="text-[10px] font-semibold text-[#a89e8a] tracking-[0.2em] uppercase mb-3">
               Attendee Details
             </p>
@@ -250,19 +250,18 @@ function AttendeeModal({
           </div>
 
           {/* Right: QR */}
-          <div className="md:w-[240px] border-t md:border-t-0 md:border-l border-[#f0e8d8] p-6 flex flex-col items-center gap-4 bg-[#fdfaf6]">
+          <div className="sm:w-[220px] sm:flex-shrink-0 border-t sm:border-t-0 sm:border-l border-[#f0e8d8] p-4 sm:p-6 flex flex-col items-center gap-3 sm:gap-4 bg-[#fdfaf6]">
             <p className="text-[10px] font-semibold text-[#a89e8a] tracking-[0.2em] uppercase self-start">
               Event Pass QR
             </p>
 
-            {/* QR image — same endpoint used in emails and success page */}
-            <div className="bg-white p-3 rounded-xl shadow-sm border border-[#e8e2d5]">
+            <div className="bg-white p-2.5 sm:p-3 rounded-xl shadow-sm border border-[#e8e2d5]">
               <img
                 src={`/api/qr-image/${attendee.id}`}
                 alt="Event QR Pass"
-                width={180}
-                height={180}
-                className="block rounded-lg"
+                width={160}
+                height={160}
+                className="block rounded-lg w-36 h-36 sm:w-40 sm:h-40"
               />
             </div>
 
@@ -579,10 +578,21 @@ export default function AdminDashboard() {
 
         {/* Mobile card list — shown only on small screens */}
         <div className="sm:hidden">
-          {loading ? (
-            <div className="px-4 py-12 flex items-center justify-center gap-3 text-[#a89e8a]">
-              <div className="w-5 h-5 border-2 border-[#c4952a]/30 border-t-[#c4952a] rounded-full animate-spin" />
-              <span className="text-sm">Loading...</span>
+          {loading && attendees.length === 0 ? (
+            /* Skeleton cards — look like real data, no spinner */
+            <div className="divide-y divide-[#f5f0e8]">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <div key={i} className="px-4 py-3.5 animate-pulse">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="space-y-2 flex-1">
+                      <div className="h-4 bg-[#ede8df] rounded" style={{ width: `${120 + (i * 23) % 80}px` }} />
+                      <div className="h-3 bg-[#ede8df] rounded" style={{ width: `${150 + (i * 17) % 70}px` }} />
+                      <div className="h-3 bg-[#ede8df] rounded" style={{ width: `${80 + (i * 31) % 60}px` }} />
+                    </div>
+                    <div className="h-5 bg-[#ede8df] rounded-full w-16 flex-shrink-0 mt-0.5" />
+                  </div>
+                </div>
+              ))}
             </div>
           ) : attendees.length === 0 ? (
             <div className="px-4 py-12 text-center text-sm text-[#a89e8a]">No attendees found.</div>
@@ -658,15 +668,19 @@ export default function AdminDashboard() {
               </tr>
             </thead>
             <tbody>
-              {loading ? (
-                <tr>
-                  <td colSpan={7} className="px-6 py-16 text-center">
-                    <div className="flex items-center justify-center gap-3 text-[#a89e8a]">
-                      <div className="w-5 h-5 border-2 border-[#c4952a]/30 border-t-[#c4952a] rounded-full animate-spin" />
-                      <span className="text-sm">Loading attendees...</span>
-                    </div>
-                  </td>
-                </tr>
+              {loading && attendees.length === 0 ? (
+                /* Skeleton rows — instant-feel, no spinner */
+                Array.from({ length: 8 }).map((_, i) => (
+                  <tr key={i} className="border-b border-[#faf5ed] animate-pulse">
+                    <td className="px-6 py-4"><div className="h-3.5 bg-[#ede8df] rounded" style={{ width: `${80 + (i * 23) % 80}px` }} /></td>
+                    <td className="px-6 py-4"><div className="h-3.5 bg-[#ede8df] rounded" style={{ width: `${120 + (i * 17) % 80}px` }} /></td>
+                    <td className="px-6 py-4"><div className="h-3.5 bg-[#ede8df] rounded w-24" /></td>
+                    <td className="px-6 py-4"><div className="h-3.5 bg-[#ede8df] rounded" style={{ width: `${60 + (i * 31) % 80}px` }} /></td>
+                    <td className="px-6 py-4"><div className="h-5 bg-[#ede8df] rounded-full w-14" /></td>
+                    <td className="px-6 py-4"><div className="h-5 bg-[#ede8df] rounded-full w-20" /></td>
+                    <td className="px-6 py-4" />
+                  </tr>
+                ))
               ) : attendees.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="px-6 py-16 text-center text-[#a89e8a] text-sm">
