@@ -24,6 +24,12 @@ export default function RegisterPage() {
     setLoading(true);
     setError("");
 
+    if (!form.email.toLowerCase().trim().endsWith("@wasl.ae")) {
+      setError("Registration is restricted to @wasl.ae email addresses.");
+      setLoading(false);
+      return;
+    }
+
     try {
       const res = await fetch("/api/register", {
         method: "POST",

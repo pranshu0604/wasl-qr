@@ -10,6 +10,10 @@ export function isValidEmail(email: string): boolean {
   return EMAIL_REGEX.test(email) && email.length <= 254;
 }
 
+export function isWaslEmail(email: string): boolean {
+  return email.toLowerCase().trim().endsWith("@wasl.ae");
+}
+
 export function isValidPhone(phone: string): boolean {
   const cleaned = phone.replace(/\s/g, "");
   return PHONE_REGEX_INTL.test(cleaned) || PHONE_REGEX_LOOSE.test(cleaned);
@@ -44,6 +48,9 @@ export function validateRegistration(body: Record<string, unknown>): string | nu
   }
   if (!isValidEmail(email.trim())) {
     return "Please enter a valid email address.";
+  }
+  if (!isWaslEmail(email.trim())) {
+    return "Registration is restricted to @wasl.ae email addresses.";
   }
 
   if (phone && typeof phone === "string" && phone.trim().length > 0) {

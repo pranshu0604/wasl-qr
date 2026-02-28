@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { isValidEmail, sanitize } from "@/lib/validate";
+import { isValidEmail, isWaslEmail, sanitize } from "@/lib/validate";
 
 const MAX_IMPORT_SIZE = 500;
 
@@ -39,6 +39,12 @@ export async function POST(req: NextRequest) {
 
         if (!isValidEmail(email)) {
           errors.push(`Skipped: Invalid email ${email}`);
+          skipped++;
+          continue;
+        }
+
+        if (!isWaslEmail(email)) {
+          errors.push(`Skipped: Non-wasl.ae email ${email}`);
           skipped++;
           continue;
         }

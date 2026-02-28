@@ -23,7 +23,9 @@
       "Bash(git restore:*)",
       "Bash(ls -la /Users/pranshupandey/Developer/Client/calvin-event/.env*)",
       "Bash(npx next build)",
-      "Bash(npm uninstall @prisma/client prisma)"
+      "Bash(npm uninstall @prisma/client prisma)",
+      "Bash(npm uninstall nodemailer @types/nodemailer)",
+      "Bash(npm run build)"
     ]
   }
 }

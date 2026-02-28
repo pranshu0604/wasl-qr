@@ -1,15 +1,4 @@
-import nodemailer from "nodemailer";
 import { generateQRCodeDataURL } from "./qr";
-
-const transporter = nodemailer.createTransport({
-  host: "smtp.sendgrid.net",
-  port: 587,
-  secure: false,
-  auth: {
-    user: "apikey",
-    pass: process.env.SENDGRID_API_KEY,
-  },
-});
 
 interface SendQREmailParams {
   to: string;
@@ -25,11 +14,7 @@ export async function sendQREmail({ to, firstName, lastName, qrToken }: SendQREm
 
   const base64Data = qrDataUrl.split(",")[1];
 
-  await transporter.sendMail({
-    from: `"Wasl Suhoor Gathering" <${process.env.SENDER_EMAIL}>`,
-    to,
-    subject: `${firstName}, your Suhoor Gathering pass is ready`,
-    html: `
+  const html = `
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -175,13 +160,36 @@ export async function sendQREmail({ to, firstName, lastName, qrToken }: SendQREm
 
 </body>
 </html>
-    `,
-    attachments: [
-      {
-        filename: "qrcode.png",
-        content: Buffer.from(base64Data, "base64"),
-        cid: "qrcode",
+  `;
+
+  const res = await fetch("https://api.sendgrid.com/v3/mail/send", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${process.env.SENDGRID_API_KEY}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      personalizations: [{ to: [{ email: to }] }],
+      from: {
+        email: process.env.SENDER_EMAIL,
+        name: "Wasl Suhoor Gathering",
       },
-    ],
+      subject: `${firstName}, your Suhoor Gathering pass is ready`,
+      content: [{ type: "text/html", value: html }],
+      attachments: [
+        {
+          content: base64Data,
+          filename: "qrcode.png",
+          type: "image/png",
+          disposition: "inline",
+          content_id: "qrcode",
+        },
+      ],
+    }),
   });
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`SendGrid API error: ${res.status} ${text}`);
+  }
 }
