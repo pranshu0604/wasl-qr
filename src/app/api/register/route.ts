@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/db";
+import { db } from "@/lib/db";
 import { sendQREmail } from "@/lib/email";
 import { validateRegistration, sanitize } from "@/lib/validate";
 import { isRateLimited } from "@/lib/rate-limit";
@@ -26,23 +26,21 @@ export async function POST(req: NextRequest) {
     const firstName = sanitize(body.firstName);
     const lastName = sanitize(body.lastName);
     const email = body.email.toLowerCase().trim();
-    const phone = sanitize(body.phone);
+    const phone = body.phone ? sanitize(body.phone) : null;
     const company = body.company ? sanitize(body.company) : null;
     const designation = body.designation ? sanitize(body.designation) : null;
 
     // Check if email already registered
-    const existingByEmail = await prisma.attendee.findUnique({
-      where: { email },
-    });
+    const existing = await db.findByEmail(email);
 
-    if (existingByEmail) {
+    if (existing) {
       // Resend QR email for existing registration
       try {
         await sendQREmail({
-          to: existingByEmail.email,
-          firstName: existingByEmail.firstName,
-          lastName: existingByEmail.lastName,
-          qrToken: existingByEmail.qrToken,
+          to: existing.email,
+          firstName: existing.firstName,
+          lastName: existing.lastName,
+          qrToken: existing.qrToken,
         });
       } catch (emailErr) {
         console.error("Email resend error:", emailErr);
@@ -54,29 +52,15 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Check if phone already registered
-    const existingByPhone = await prisma.attendee.findFirst({
-      where: { phone },
-    });
-
-    if (existingByPhone) {
-      return NextResponse.json(
-        { error: "This phone number is already registered. Please use a different number or contact support." },
-        { status: 409 }
-      );
-    }
-
     // Create attendee
-    const attendee = await prisma.attendee.create({
-      data: {
-        firstName,
-        lastName,
-        email,
-        phone,
-        company,
-        designation,
-        source: "online",
-      },
+    const attendee = await db.create({
+      firstName,
+      lastName,
+      email,
+      phone,
+      company,
+      designation,
+      source: "online",
     });
 
     // Send QR email
@@ -95,19 +79,7 @@ export async function POST(req: NextRequest) {
       id: attendee.id,
       message: "Registration successful. QR pass sent to your email.",
     });
-  } catch (error: unknown) {
-    // P2002 = Prisma unique constraint violation — race condition where two
-    // simultaneous requests both pass the duplicate check then one fails on create
-    if (
-      error instanceof Error &&
-      "code" in error &&
-      (error as { code: string }).code === "P2002"
-    ) {
-      return NextResponse.json(
-        { error: "This email or phone is already registered." },
-        { status: 409 }
-      );
-    }
+  } catch (error) {
     console.error("Registration error:", error);
     return NextResponse.json(
       { error: "Registration failed. Please try again." },

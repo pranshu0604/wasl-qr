@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Exclusive Event Registration",
-  description: "Register for the exclusive real estate event and receive your digital pass.",
+  title: "Wasl Suhoor Gathering",
+  description: "You are invited to the Wasl Employees Suhoor Gathering at Park Hyatt Dubai Creek. Register to receive your QR pass.",
 };
 
 export default function RootLayout({

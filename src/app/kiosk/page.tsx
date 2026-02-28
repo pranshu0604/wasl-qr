@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useCallback, useRef, useEffect } from "react";
-import PhoneInput from "@/components/PhoneInput";
 
 type Stage = "search" | "confirming" | "registered" | "not_found";
 
@@ -28,8 +27,7 @@ export default function KioskPage() {
   const [results, setResults] = useState<AttendeeResult[]>([]);
   const [searching, setSearching] = useState(false);
   const [selected, setSelected] = useState<AttendeeResult | null>(null);
-  const [guestForm, setGuestForm] = useState({ firstName: "", lastName: "", email: "", phone: "" });
-  const [guestPhoneValid, setGuestPhoneValid] = useState(false);
+  const [guestForm, setGuestForm] = useState({ firstName: "", lastName: "", email: "" });
   const [guestLoading, setGuestLoading] = useState(false);
   const [guestError, setGuestError] = useState("");
 
@@ -50,8 +48,8 @@ export default function KioskPage() {
 
   const resetToSearch = () => {
     setStage("search"); setQuery(""); setResults([]); setSelected(null);
-    setGuestForm({ firstName: "", lastName: "", email: "", phone: "" });
-    setGuestPhoneValid(false); setGuestError("");
+    setGuestForm({ firstName: "", lastName: "", email: "" });
+    setGuestError("");
   };
 
   const handleSearch = useCallback((value: string) => {
@@ -74,7 +72,6 @@ export default function KioskPage() {
 
   const handleGuestSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!guestPhoneValid) { setGuestError("Please enter a valid phone number."); return; }
     setGuestLoading(true); setGuestError("");
     try {
       const res = await fetch("/api/register", {
@@ -83,7 +80,6 @@ export default function KioskPage() {
           firstName: guestForm.firstName.trim(),
           lastName:  guestForm.lastName.trim(),
           email:     guestForm.email.trim(),
-          phone:     guestForm.phone.trim(),
         }),
       });
       const data = await res.json();
@@ -236,12 +232,8 @@ export default function KioskPage() {
                   <label className="block text-[9px] font-bold text-white/30 tracking-[0.25em] uppercase mb-2">Email <span className="text-[#c4952a]">*</span></label>
                   <input type="email" required value={guestForm.email} onChange={(e) => setGuestForm(p => ({ ...p, email: e.target.value }))} placeholder="john@company.com" className="input-dark" />
                 </div>
-                <div>
-                  <label className="block text-[9px] font-bold text-white/30 tracking-[0.25em] uppercase mb-2">Mobile Number <span className="text-[#c4952a]">*</span></label>
-                  <PhoneInput value={guestForm.phone} onChange={(full, valid) => { setGuestForm(p => ({ ...p, phone: full })); setGuestPhoneValid(valid); }} variant="dark" defaultCountry="IN" />
-                </div>
                 {guestError && <p className="text-red-400 text-sm animate-fade-in">{guestError}</p>}
-                <button type="submit" disabled={guestLoading || !guestPhoneValid} className="w-full bg-[#c4952a] text-white text-[11px] font-bold tracking-[0.2em] uppercase py-5 hover:bg-[#d4a844] active:scale-[0.99] transition-all duration-300 flex items-center justify-center gap-3 disabled:opacity-40 mt-3">
+                <button type="submit" disabled={guestLoading} className="w-full bg-[#c4952a] text-white text-[11px] font-bold tracking-[0.2em] uppercase py-5 hover:bg-[#d4a844] active:scale-[0.99] transition-all duration-300 flex items-center justify-center gap-3 disabled:opacity-40 mt-3">
                   {guestLoading ? <><Spinner className="w-4 h-4" /> Registering...</> : "Register — QR Will Be Emailed"}
                 </button>
                 <button type="button" onClick={resetToSearch} className="w-full text-white/15 hover:text-white/35 text-[10px] tracking-[0.3em] uppercase py-2.5 transition-colors">← Back to Search</button>

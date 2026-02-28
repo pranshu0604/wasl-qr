@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/db";
+import { db } from "@/lib/db";
 
 export async function GET(
   req: NextRequest,
@@ -8,9 +8,7 @@ export async function GET(
   try {
     const { token } = await params;
 
-    const attendee = await prisma.attendee.findUnique({
-      where: { qrToken: token },
-    });
+    const attendee = await db.findByQrToken(token);
 
     if (!attendee) {
       return NextResponse.json(

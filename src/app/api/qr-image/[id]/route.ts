@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma as db } from "@/lib/db";
+import { db } from "@/lib/db";
 import { generateQRCodeBuffer } from "@/lib/qr";
 
 export async function GET(
@@ -9,10 +9,7 @@ export async function GET(
   try {
     const { id } = await params;
 
-    const attendee = await db.attendee.findUnique({
-      where: { id },
-      select: { qrToken: true },
-    });
+    const attendee = await db.findById(id);
 
     if (!attendee) {
       return NextResponse.json({ error: "Not found" }, { status: 404 });

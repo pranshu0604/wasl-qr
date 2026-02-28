@@ -7,7 +7,7 @@ interface Attendee {
   firstName: string;
   lastName: string;
   email: string;
-  phone: string;
+  phone: string | null;
   company: string | null;
   designation: string | null;
   checkedIn: boolean;
@@ -142,15 +142,17 @@ function AttendeeModal({
               Attendee Details
             </p>
 
-            <DetailRow
-              icon={
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" />
-                </svg>
-              }
-              label="Phone"
-              value={attendee.phone}
-            />
+            {attendee.phone && (
+              <DetailRow
+                icon={
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" />
+                  </svg>
+                }
+                label="Phone"
+                value={attendee.phone}
+              />
+            )}
 
             {attendee.company && (
               <DetailRow
@@ -530,7 +532,7 @@ export default function AdminDashboard() {
             </svg>
             <input
               type="text"
-              placeholder="Search by name, email, or phone..."
+              placeholder="Search by name, email, or company..."
               value={search}
               onChange={(e) => { setSearch(e.target.value); setPage(1); }}
               className="w-full pl-10 pr-4 py-2.5 bg-[#faf7f2] border border-[#e0d8ca] rounded-lg text-sm text-[#0a0a0a] placeholder:text-[#b8b0a0] focus:outline-none focus:border-[#c4952a] focus:ring-1 focus:ring-[#c4952a]/25 transition-all"
@@ -608,7 +610,7 @@ export default function AdminDashboard() {
                     <div className="min-w-0">
                       <p className="font-medium text-[#0a0a0a] text-sm truncate">{a.firstName} {a.lastName}</p>
                       <p className="text-xs text-[#8a7f6e] truncate mt-0.5">{a.email}</p>
-                      <p className="text-xs text-[#a89e8a] mt-0.5">{a.phone}{a.company ? ` · ${a.company}` : ""}</p>
+                      <p className="text-xs text-[#a89e8a] mt-0.5">{a.phone || ""}{a.company ? `${a.phone ? " · " : ""}${a.company}` : ""}</p>
                     </div>
                     <div className="flex items-center gap-2 flex-shrink-0 mt-0.5">
                       {a.checkedIn ? (
@@ -701,7 +703,7 @@ export default function AdminDashboard() {
                       )}
                     </td>
                     <td className="px-6 py-4 text-sm text-[#6b6359]">{a.email}</td>
-                    <td className="px-6 py-4 text-sm text-[#6b6359]">{a.phone}</td>
+                    <td className="px-6 py-4 text-sm text-[#6b6359]">{a.phone || "—"}</td>
                     <td className="px-6 py-4 text-sm text-[#6b6359]">{a.company || "—"}</td>
                     <td className="px-6 py-4">
                       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-medium ${sourceBadge[a.source] || sourceBadge.import}`}>

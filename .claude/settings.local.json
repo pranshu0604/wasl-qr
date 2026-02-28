@@ -20,7 +20,10 @@
       "Bash(1 curl -s http://localhost:3000)",
       "Bash(git pull:*)",
       "Bash(git stash:*)",
-      "Bash(git restore:*)"
+      "Bash(git restore:*)",
+      "Bash(ls -la /Users/pranshupandey/Developer/Client/calvin-event/.env*)",
+      "Bash(npx next build)",
+      "Bash(npm uninstall @prisma/client prisma)"
     ]
   }
 }

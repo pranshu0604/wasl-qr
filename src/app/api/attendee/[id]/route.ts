@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma as db } from "@/lib/db";
+import { db } from "@/lib/db";
 
 export async function GET(
   _req: NextRequest,
@@ -8,16 +8,17 @@ export async function GET(
   try {
     const { id } = await params;
 
-    const attendee = await db.attendee.findUnique({
-      where: { id },
-      select: { firstName: true, lastName: true, email: true },
-    });
+    const attendee = await db.findById(id);
 
     if (!attendee) {
       return NextResponse.json({ error: "Not found" }, { status: 404 });
     }
 
-    return NextResponse.json(attendee);
+    return NextResponse.json({
+      firstName: attendee.firstName,
+      lastName: attendee.lastName,
+      email: attendee.email,
+    });
   } catch (error) {
     console.error("Attendee fetch error:", error);
     return NextResponse.json({ error: "Failed to fetch attendee" }, { status: 500 });

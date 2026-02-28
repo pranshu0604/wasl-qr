@@ -46,11 +46,10 @@ export function validateRegistration(body: Record<string, unknown>): string | nu
     return "Please enter a valid email address.";
   }
 
-  if (!phone || typeof phone !== "string") {
-    return "Phone number is required.";
-  }
-  if (!isValidPhone(phone.trim())) {
-    return "Please enter a valid phone number.";
+  if (phone && typeof phone === "string" && phone.trim().length > 0) {
+    if (!isValidPhone(phone.trim())) {
+      return "Please enter a valid phone number.";
+    }
   }
 
   if (body.company && typeof body.company === "string" && body.company.length > 200) {

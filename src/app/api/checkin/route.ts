@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/db";
+import { db } from "@/lib/db";
 
 export async function POST(req: NextRequest) {
   try {
@@ -12,9 +12,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const attendee = await prisma.attendee.findUnique({
-      where: { qrToken },
-    });
+    const attendee = await db.findByQrToken(qrToken);
 
     if (!attendee) {
       return NextResponse.json(
@@ -38,26 +36,23 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    const updated = await prisma.attendee.update({
-      where: { qrToken },
-      data: {
-        checkedIn: true,
-        checkedInAt: new Date(),
-      },
+    const updated = await db.update(attendee.id, {
+      checkedIn: true,
+      checkedInAt: new Date(),
     });
 
     return NextResponse.json({
       found: true,
       alreadyCheckedIn: false,
       attendee: {
-        id: updated.id,
-        firstName: updated.firstName,
-        lastName: updated.lastName,
-        email: updated.email,
-        company: updated.company,
-        designation: updated.designation,
+        id: updated!.id,
+        firstName: updated!.firstName,
+        lastName: updated!.lastName,
+        email: updated!.email,
+        company: updated!.company,
+        designation: updated!.designation,
       },
-      message: `Welcome, ${updated.firstName} ${updated.lastName}!`,
+      message: `Welcome, ${updated!.firstName} ${updated!.lastName}!`,
     });
   } catch (error) {
     console.error("Check-in error:", error);

@@ -52,7 +52,7 @@ function SuccessContent() {
         <div className="flex items-center justify-center gap-4 sm:gap-5">
           <div className="h-px w-10 sm:w-16 bg-gradient-to-r from-transparent to-[#c4952a]/35" />
           <span className="font-display text-[#c4952a] text-[10px] sm:text-[11px] tracking-[0.4em] sm:tracking-[0.6em] uppercase">
-            Exclusive Event
+            Wasl Suhoor Gathering
           </span>
           <div className="h-px w-10 sm:w-16 bg-gradient-to-l from-transparent to-[#c4952a]/35" />
         </div>
@@ -206,7 +206,7 @@ function SuccessContent() {
             )}
 
             <Link
-              href="/"
+              href="/register"
               className="group inline-flex items-center gap-3 text-[#c4952a] text-[11px] tracking-[0.2em] sm:tracking-[0.3em] uppercase font-semibold border border-[#c4952a]/25 hover:border-[#c4952a]/60 px-6 sm:px-7 py-3 sm:py-3.5 transition-all duration-300"
             >
               Register Another Guest
@@ -223,7 +223,7 @@ function SuccessContent() {
       </main>
 
       <footer className="relative z-10 py-4 sm:py-5 text-center border-t border-white/[0.05]">
-        <p className="text-white/10 text-[9px] tracking-[0.4em] sm:tracking-[0.5em] uppercase">Exclusive Event 2025</p>
+        <p className="text-white/10 text-[9px] tracking-[0.4em] sm:tracking-[0.5em] uppercase">Wasl Suhoor Gathering 2026</p>
       </footer>
     </div>
   );

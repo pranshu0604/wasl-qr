@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/db";
-import { Prisma } from "@prisma/client";
+import { db } from "@/lib/db";
 import { isSearchRateLimited } from "@/lib/rate-limit";
 
 export async function GET(req: NextRequest) {
@@ -21,40 +20,47 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ attendees: [] });
     }
 
+    // Get all attendees matching the search
+    const allMatches = await db.findMany({ search: q.trim() });
+
+    // Apply the same multi-part matching and sorting as the original
     const parts = q.trim().split(/\s+/);
-    const mode = Prisma.QueryMode.insensitive;
+    let results = allMatches;
 
-    const orConditions: Prisma.AttendeeWhereInput[] = [
-      { firstName: { contains: q, mode } },
-      { lastName: { contains: q, mode } },
-    ];
-
+    // If multi-word search, also include first+last name combos
     if (parts.length >= 2) {
-      orConditions.push({
-        AND: [
-          { firstName: { contains: parts[0], mode } },
-          { lastName: { contains: parts[1], mode } },
-        ],
-      });
+      const p0 = parts[0].toLowerCase();
+      const p1 = parts[1].toLowerCase();
+      // findMany already does basic search; add first+last combo matches
+      const allAttendees = await db.findMany({});
+      const combos = allAttendees.filter(
+        (a) =>
+          a.firstName.toLowerCase().includes(p0) &&
+          a.lastName.toLowerCase().includes(p1)
+      );
+      // Merge, avoiding duplicates
+      const ids = new Set(results.map((a) => a.id));
+      for (const c of combos) {
+        if (!ids.has(c.id)) results.push(c);
+      }
     }
 
-    const attendees = await prisma.attendee.findMany({
-      where: { OR: orConditions },
-      orderBy: [
-        { checkedIn: "asc" }, // not checked-in first
-        { firstName: "asc" },
-      ],
-      take: 8,
-      select: {
-        id: true,
-        firstName: true,
-        lastName: true,
-        company: true,
-        designation: true,
-        checkedIn: true,
-        checkedInAt: true,
-      },
+    // Sort: not checked-in first, then by firstName
+    results.sort((a, b) => {
+      if (a.checkedIn !== b.checkedIn) return a.checkedIn ? 1 : -1;
+      return a.firstName.localeCompare(b.firstName);
     });
+
+    // Take top 8, select specific fields
+    const attendees = results.slice(0, 8).map((a) => ({
+      id: a.id,
+      firstName: a.firstName,
+      lastName: a.lastName,
+      company: a.company,
+      designation: a.designation,
+      checkedIn: a.checkedIn,
+      checkedInAt: a.checkedInAt,
+    }));
 
     return NextResponse.json({ attendees });
   } catch (error) {

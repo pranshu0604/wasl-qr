@@ -2,10 +2,12 @@ import nodemailer from "nodemailer";
 import { generateQRCodeDataURL } from "./qr";
 
 const transporter = nodemailer.createTransport({
-  service: "gmail",
+  host: "smtp.sendgrid.net",
+  port: 587,
+  secure: false,
   auth: {
-    user: process.env.GMAIL_USER,
-    pass: process.env.GMAIL_APP_PASSWORD,
+    user: "apikey",
+    pass: process.env.SENDGRID_API_KEY,
   },
 });
 
@@ -24,9 +26,9 @@ export async function sendQREmail({ to, firstName, lastName, qrToken }: SendQREm
   const base64Data = qrDataUrl.split(",")[1];
 
   await transporter.sendMail({
-    from: `"Exclusive Event" <${process.env.GMAIL_USER}>`,
+    from: `"Wasl Suhoor Gathering" <${process.env.SENDER_EMAIL}>`,
     to,
-    subject: `${firstName}, your event pass is ready`,
+    subject: `${firstName}, your Suhoor Gathering pass is ready`,
     html: `
 <!DOCTYPE html>
 <html lang="en">
@@ -46,7 +48,7 @@ export async function sendQREmail({ to, firstName, lastName, qrToken }: SendQREm
           <tr>
             <td align="center" style="padding-bottom:32px;">
               <p style="margin:0;color:#e4a44e;font-size:11px;font-weight:700;letter-spacing:4px;text-transform:uppercase;">
-                Exclusive Event
+                Wasl Suhoor Gathering
               </p>
             </td>
           </tr>
@@ -80,7 +82,7 @@ export async function sendQREmail({ to, firstName, lastName, qrToken }: SendQREm
                       ${firstName} ${lastName}
                     </h2>
                     <p style="margin:0;color:#7a7a7a;font-size:15px;line-height:1.7;">
-                      Your exclusive event pass has been generated. Show this QR code at the entrance for instant check-in.
+                      Your Suhoor Gathering pass has been generated. Show this QR code at the entrance for instant check-in.
                     </p>
                   </td>
                 </tr>
@@ -158,7 +160,7 @@ export async function sendQREmail({ to, firstName, lastName, qrToken }: SendQREm
           <tr>
             <td style="padding:32px 0;text-align:center;">
               <p style="margin:0 0 6px;color:#3a3a3a;font-size:12px;">
-                We look forward to seeing you at the event.
+                We look forward to seeing you at the Suhoor Gathering.
               </p>
               <p style="margin:0;color:#2a2a2a;font-size:11px;">
                 This is an automated message — please do not reply.

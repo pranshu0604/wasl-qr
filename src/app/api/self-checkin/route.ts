@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/db";
+import { db } from "@/lib/db";
 
 export async function POST(req: NextRequest) {
   try {
@@ -12,9 +12,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const attendee = await prisma.attendee.findUnique({
-      where: { id: attendeeId },
-    });
+    const attendee = await db.findById(attendeeId);
 
     if (!attendee) {
       return NextResponse.json(
@@ -36,20 +34,20 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    const updated = await prisma.attendee.update({
-      where: { id: attendeeId },
-      data: { checkedIn: true, checkedInAt: new Date() },
+    const updated = await db.update(attendeeId, {
+      checkedIn: true,
+      checkedInAt: new Date(),
     });
 
     return NextResponse.json({
       alreadyCheckedIn: false,
       attendee: {
-        firstName: updated.firstName,
-        lastName: updated.lastName,
-        company: updated.company,
-        designation: updated.designation,
+        firstName: updated!.firstName,
+        lastName: updated!.lastName,
+        company: updated!.company,
+        designation: updated!.designation,
       },
-      message: `Welcome, ${updated.firstName}!`,
+      message: `Welcome, ${updated!.firstName}!`,
     });
   } catch (error) {
     console.error("Self check-in error:", error);

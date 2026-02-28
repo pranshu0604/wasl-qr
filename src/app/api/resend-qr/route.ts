@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/db";
+import { db } from "@/lib/db";
 import { sendQREmail } from "@/lib/email";
 
 export async function POST(req: NextRequest) {
@@ -7,7 +7,7 @@ export async function POST(req: NextRequest) {
     const { id } = await req.json();
     if (!id) return NextResponse.json({ error: "Attendee ID required" }, { status: 400 });
 
-    const attendee = await prisma.attendee.findUnique({ where: { id } });
+    const attendee = await db.findById(id);
     if (!attendee) return NextResponse.json({ error: "Attendee not found" }, { status: 404 });
 
     await sendQREmail({

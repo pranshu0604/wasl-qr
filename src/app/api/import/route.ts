@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/db";
+import { db } from "@/lib/db";
 import { isValidEmail, sanitize } from "@/lib/validate";
 
 const MAX_IMPORT_SIZE = 500;
@@ -31,7 +31,7 @@ export async function POST(req: NextRequest) {
       try {
         const { firstName, lastName, email, phone, company, designation } = entry;
 
-        if (!firstName || !lastName || !email || !phone) {
+        if (!firstName || !lastName || !email) {
           errors.push(`Skipped: Missing required fields for ${email || "unknown"}`);
           skipped++;
           continue;
@@ -43,25 +43,21 @@ export async function POST(req: NextRequest) {
           continue;
         }
 
-        const existing = await prisma.attendee.findUnique({
-          where: { email: email.toLowerCase().trim() },
-        });
+        const existing = await db.findByEmail(email.toLowerCase().trim());
 
         if (existing) {
           skipped++;
           continue;
         }
 
-        await prisma.attendee.create({
-          data: {
-            firstName: sanitize(firstName),
-            lastName: sanitize(lastName),
-            email: email.toLowerCase().trim(),
-            phone: sanitize(String(phone)),
-            company: company ? sanitize(company) : null,
-            designation: designation ? sanitize(designation) : null,
-            source: "import",
-          },
+        await db.create({
+          firstName: sanitize(firstName),
+          lastName: sanitize(lastName),
+          email: email.toLowerCase().trim(),
+          phone: phone ? sanitize(String(phone)) : null,
+          company: company ? sanitize(company) : null,
+          designation: designation ? sanitize(designation) : null,
+          source: "import",
         });
 
         imported++;
