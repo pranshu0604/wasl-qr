@@ -53,8 +53,8 @@ export default function RegisterPage() {
 
       {/* Header */}
       <header className="flex items-center justify-between px-6 sm:px-10 py-4 sm:py-5 border-b border-[#f0ead8]">
-        <Link href="/" className="text-[#1a1a1a] text-2xl font-bold tracking-tight hover:opacity-70 transition-opacity">
-          wasl
+        <Link href="/" className="hover:opacity-70 transition-opacity">
+          <img src="/wasl-logo.png" alt="wasl" className="h-7 sm:h-8 w-auto" />
         </Link>
         <span className="text-[#8a7f6e] text-[11px] sm:text-xs tracking-[0.3em] uppercase font-medium">
           Registration

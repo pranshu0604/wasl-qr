@@ -51,9 +51,7 @@ function SuccessContent() {
       <header className="relative z-10 py-5 px-4 sm:py-8 sm:px-8">
         <div className="flex items-center justify-center gap-4 sm:gap-5">
           <div className="h-px w-10 sm:w-16 bg-gradient-to-r from-transparent to-[#c4952a]/35" />
-          <span className="font-display text-[#c4952a] text-[10px] sm:text-[11px] tracking-[0.4em] sm:tracking-[0.6em] uppercase">
-            Wasl Suhoor Gathering
-          </span>
+          <img src="/wasl-logo.png" alt="wasl" className="h-5 sm:h-6 w-auto brightness-0 invert opacity-80" />
           <div className="h-px w-10 sm:w-16 bg-gradient-to-l from-transparent to-[#c4952a]/35" />
         </div>
       </header>

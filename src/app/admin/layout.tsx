@@ -53,10 +53,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <div className="flex items-center justify-between gap-2">
           {/* Brand — full on sm+, icon-only label on mobile */}
           <div className="flex items-center gap-2 sm:gap-5 min-w-0">
-            <div className="flex items-center gap-2 flex-shrink-0">
-              <div className="w-3 sm:w-4 h-px bg-[#c4952a]" />
-              <span className="font-display text-[#c4952a] text-[11px] sm:text-sm tracking-[0.15em] sm:tracking-[0.2em] uppercase whitespace-nowrap">
-                <span className="hidden sm:inline">Wasl </span>Admin
+            <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+              <img src="/wasl-logo.png" alt="wasl" className="h-5 sm:h-6 w-auto brightness-0 invert" />
+              <span className="font-display text-[#c4952a] text-[11px] sm:text-sm tracking-[0.15em] sm:tracking-[0.2em] uppercase">
+                Admin
               </span>
             </div>
 

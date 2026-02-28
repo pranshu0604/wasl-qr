@@ -6,9 +6,7 @@ export default function LandingPage() {
 
       {/* ─── Header ─── */}
       <header className="flex items-center justify-between px-6 sm:px-10 py-4 sm:py-5">
-        <span className="text-[#1a1a1a] text-2xl sm:text-3xl font-bold tracking-tight">
-          wasl
-        </span>
+        <img src="/wasl-logo.png" alt="wasl" className="h-7 sm:h-8 w-auto" />
         <span className="text-[#8a7f6e] text-[11px] sm:text-xs tracking-[0.3em] uppercase font-medium">
           Invitation
         </span>
@@ -36,11 +34,11 @@ export default function LandingPage() {
             className="text-white font-bold tracking-[0.15em] sm:tracking-[0.25em] uppercase"
             style={{ fontSize: "clamp(0.85rem, 2.5vw, 1.4rem)" }}
           >
-            <span className="font-light italic mr-1 lowercase tracking-normal" style={{ fontSize: "0.85em" }}>
-              Ramadan
+            <span className="font-light bold-extrabold mr-1 tracking-normal" style={{ fontSize: "0.85em" }}>
+              RAMADAN
             </span>{" "}
             in{" "}
-            <span className="font-extrabold">Dubai</span>
+            <span className="font-extrabold">DUBAI</span>
           </p>
         </div>
       </section>
