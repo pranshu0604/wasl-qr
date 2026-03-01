@@ -204,7 +204,7 @@ function SuccessContent() {
             )}
 
             <Link
-              href="/register"
+              href="/"
               className="group inline-flex items-center gap-3 text-[#c4952a] text-[11px] tracking-[0.2em] sm:tracking-[0.3em] uppercase font-semibold border border-[#c4952a]/25 hover:border-[#c4952a]/60 px-6 sm:px-7 py-3 sm:py-3.5 transition-all duration-300"
             >
               Register Another Guest
