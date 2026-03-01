@@ -158,13 +158,13 @@ export default function LandingPage() {
                   )}
                 </button>
 
-                <p className="text-center text-[#1a1a1a] text-xs mt-2">
+                <p className="text-center text-[#1a1a1a] text-sm font-bold mt-3 bg-[#c4952a]/15 border border-[#c4952a]/30 rounded-lg py-2 px-3">
                   Your QR pass will be emailed to you upon registration.
                 </p>
               </form>
             </div>
 
-            <p className="text-[#1a1a1a] text-sm sm:text-base leading-relaxed mt-6">
+            <p className="text-[#1a1a1a] text-sm sm:text-base font-bold leading-relaxed mt-6 bg-[#c4952a]/15 border border-[#c4952a]/30 rounded-lg py-3 px-4">
               Please note that a unique QR code will be sent to you upon successful
               registration to present upon arrival at the Suhoor event.
             </p>
