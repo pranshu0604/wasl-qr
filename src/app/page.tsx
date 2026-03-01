@@ -174,29 +174,29 @@ export default function LandingPage() {
 
       {/* ─── Event Details Bar ─── */}
       <section className="bg-[#D7D1CA] border-t border-[#c5bfb5]">
-        <div className="max-w-4xl mx-auto px-6 sm:px-10 py-8 sm:py-10 grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-8">
-          <div className="text-center sm:text-left">
-            <p className="text-[11px] font-bold tracking-[0.2em] uppercase text-[#8a7f6e] mb-2">
+        <div className="max-w-4xl mx-auto px-6 sm:px-10 py-8 sm:py-10 grid grid-cols-3 gap-4 sm:gap-8">
+          <div className="text-left">
+            <p className="text-sm font-bold tracking-[0.15em] uppercase text-[#1a1a1a] mb-3">
               Date
             </p>
-            <div className="w-10 h-px bg-[#c4952a]/40 mb-3 mx-auto sm:mx-0" />
-            <p className="text-[#1a1a1a] text-base font-medium">Wednesday</p>
-            <p className="text-[#1a1a1a] text-base font-medium">4 March 2026</p>
+            <div className="w-24 h-[2px] bg-[#1a1a1a] mb-4" />
+            <p className="text-[#1a1a1a] text-base">Wednesday</p>
+            <p className="text-[#1a1a1a] text-base">4 March 2026</p>
           </div>
-          <div className="text-center sm:text-left">
-            <p className="text-[11px] font-bold tracking-[0.2em] uppercase text-[#8a7f6e] mb-2">
+          <div className="text-left">
+            <p className="text-sm font-bold tracking-[0.15em] uppercase text-[#1a1a1a] mb-3">
               Time
             </p>
-            <div className="w-10 h-px bg-[#c4952a]/40 mb-3 mx-auto sm:mx-0" />
-            <p className="text-[#1a1a1a] text-base font-medium">9:30 PM - 12:30 AM</p>
+            <div className="w-24 h-[2px] bg-[#1a1a1a] mb-4" />
+            <p className="text-[#1a1a1a] text-base">9:30 PM - 12:30 AM</p>
           </div>
-          <div className="text-center sm:text-left">
-            <p className="text-[11px] font-bold tracking-[0.2em] uppercase text-[#8a7f6e] mb-2">
+          <div className="text-left">
+            <p className="text-sm font-bold tracking-[0.15em] uppercase text-[#1a1a1a] mb-3">
               Location
             </p>
-            <div className="w-10 h-px bg-[#c4952a]/40 mb-3 mx-auto sm:mx-0" />
-            <p className="text-[#1a1a1a] text-base font-medium">Fountain Garden,</p>
-            <p className="text-[#1a1a1a] text-base font-medium">Park Hyatt Dubai Creek</p>
+            <div className="w-24 h-[2px] bg-[#1a1a1a] mb-4" />
+            <p className="text-[#1a1a1a] text-base">Fountain Garden,</p>
+            <p className="text-[#1a1a1a] text-base">Park Hyatt Dubai Creek</p>
           </div>
         </div>
       </section>
