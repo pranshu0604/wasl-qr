@@ -21,7 +21,12 @@ export async function POST(req: NextRequest) {
   const ip =
     req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
 
+  console.log("[AUTH] POST /api/auth from IP:", ip);
+  console.log("[AUTH] ADMIN_CREDS has", ADMIN_CREDS.size, "entries:", [...ADMIN_CREDS.keys()]);
+  console.log("[AUTH] SESSION_SECRET set:", !!process.env.SESSION_SECRET);
+
   if (isAuthRateLimited(ip)) {
+    console.log("[AUTH] Rate limited IP:", ip);
     return NextResponse.json(
       { ok: false, error: "Too many login attempts. Please wait 15 minutes." },
       { status: 429 }
@@ -29,14 +34,19 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const { email, secret } = await req.json();
+    const body = await req.json();
+    console.log("[AUTH] Request body keys:", Object.keys(body));
+    const { email, secret } = body;
 
     const normalizedEmail = typeof email === "string" ? email.toLowerCase().trim() : "";
     const expectedPassword = ADMIN_CREDS.get(normalizedEmail);
 
+    console.log("[AUTH] Email:", normalizedEmail, "| Found in creds:", !!expectedPassword);
+
     if (expectedPassword && typeof secret === "string" && secret === expectedPassword) {
-      // Store a signed session token
+      console.log("[AUTH] Credentials valid, creating session token...");
       const sessionToken = await createSessionToken(expectedPassword);
+      console.log("[AUTH] Session token created successfully");
       const res = NextResponse.json({ ok: true });
       res.cookies.set("admin_session", sessionToken, {
         path: "/",
@@ -49,11 +59,13 @@ export async function POST(req: NextRequest) {
       return res;
     }
 
+    console.log("[AUTH] Invalid credentials for email:", normalizedEmail);
     return NextResponse.json(
       { ok: false, error: "Invalid email or password." },
       { status: 401 }
     );
-  } catch {
+  } catch (err) {
+    console.error("[AUTH] Error:", err instanceof Error ? err.message : err);
     return NextResponse.json(
       { ok: false, error: "Invalid request." },
       { status: 400 }
