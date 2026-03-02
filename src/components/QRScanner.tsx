@@ -44,7 +44,15 @@ export default function QRScanner({ onScan, onError }: Props) {
 
     return () => {
       if (scanner) {
-        scanner.stop().catch(() => {}).finally(() => { scanner?.clear(); });
+        const s = scanner;
+        scanner = null;
+        const state = s.getState();
+        // Only stop if actually scanning or paused (state 2 or 3)
+        if (state === 2 || state === 3) {
+          s.stop().catch(() => {}).finally(() => { try { s.clear(); } catch {} });
+        } else {
+          try { s.clear(); } catch {}
+        }
       }
     };
   }, []); // empty — mount starts scanner, unmount stops it

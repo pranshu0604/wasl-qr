@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 
@@ -23,13 +23,22 @@ export default function ScanPage() {
   const [scanning, setScanning] = useState(false);
   const [result, setResult] = useState<CheckinResult | null>(null);
   const [scannerError, setScannerError] = useState<string | null>(null);
+  const [countdown, setCountdown] = useState(0);
 
   // Ref prevents double-processing when scanner fires multiple times
   const processingRef = useRef(false);
+  const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // Countdown timer — ticks every second while result is showing
+  useEffect(() => {
+    return () => { if (countdownRef.current) clearInterval(countdownRef.current); };
+  }, []);
 
   const handleScan = useCallback(async (decodedText: string) => {
     if (processingRef.current) return;
     processingRef.current = true;
+
+    let resultType: "success" | "warning" | "error" = "error";
 
     try {
       let token = decodedText.trim();
@@ -43,7 +52,7 @@ export default function ScanPage() {
 
       if (!token) {
         setResult({ type: "error", name: "", message: "Invalid QR code." });
-        setTimeout(() => { setResult(null); processingRef.current = false; }, 4000);
+        startCountdown(3);
         return;
       }
 
@@ -55,16 +64,20 @@ export default function ScanPage() {
       const data = await res.json();
 
       if (res.status === 404) {
+        resultType = "error";
         setResult({ type: "error", name: "", message: "QR not found. Use Manual Entry." });
       } else if (!res.ok) {
+        resultType = "error";
         setResult({ type: "error", name: "", message: data.error || "Check-in failed." });
       } else if (data.alreadyCheckedIn) {
+        resultType = "warning";
         setResult({
           type: "warning",
           name: `${data.attendee.firstName} ${data.attendee.lastName}`,
           message: "Already checked in earlier.",
         });
       } else {
+        resultType = "success";
         setResult({
           type: "success",
           name: `${data.attendee.firstName} ${data.attendee.lastName}`,
@@ -72,10 +85,28 @@ export default function ScanPage() {
         });
       }
     } catch {
+      resultType = "error";
       setResult({ type: "error", name: "", message: "Network error. Try Manual Entry." });
     }
 
-    setTimeout(() => { setResult(null); processingRef.current = false; }, 4000);
+    startCountdown(3);
+  }, []);
+
+  const startCountdown = useCallback((seconds: number) => {
+    if (countdownRef.current) clearInterval(countdownRef.current);
+    setCountdown(seconds);
+    countdownRef.current = setInterval(() => {
+      setCountdown((prev) => {
+        if (prev <= 1) {
+          if (countdownRef.current) clearInterval(countdownRef.current);
+          countdownRef.current = null;
+          setResult(null);
+          processingRef.current = false;
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
   }, []);
 
   const handleScannerError = useCallback((msg: string) => {
@@ -96,9 +127,9 @@ export default function ScanPage() {
   };
 
   const resultStyles = {
-    success: { wrap: "bg-green-50 border-green-200", iconBg: "bg-green-100", icon: "text-green-600", text: "text-green-700" },
-    warning: { wrap: "bg-amber-50 border-amber-200", iconBg: "bg-amber-100", icon: "text-amber-600", text: "text-amber-700" },
-    error:   { wrap: "bg-red-50 border-red-200",     iconBg: "bg-red-100",   icon: "text-red-600",   text: "text-red-700"   },
+    success: { wrap: "bg-green-600 border-green-700 shadow-lg shadow-green-600/30", iconBg: "bg-white/20", icon: "text-white", text: "text-green-50", name: "text-white" },
+    warning: { wrap: "bg-amber-50 border-amber-200", iconBg: "bg-amber-100", icon: "text-amber-600", text: "text-amber-700", name: "text-[#0a0a0a]" },
+    error:   { wrap: "bg-red-50 border-red-200",     iconBg: "bg-red-100",   icon: "text-red-600",   text: "text-red-700",   name: "text-[#0a0a0a]" },
   };
 
   return (
@@ -167,11 +198,11 @@ export default function ScanPage() {
 
         {/* Scan result */}
         {result && (
-          <div className={`p-4 sm:p-5 border-t ${resultStyles[result.type].wrap}`}>
-            <div className="flex items-start gap-3 sm:gap-4">
-              <div className={`w-10 h-10 sm:w-11 sm:h-11 rounded-xl flex items-center justify-center flex-shrink-0 ${resultStyles[result.type].iconBg}`}>
+          <div className={`p-5 sm:p-6 border-t ${resultStyles[result.type].wrap}`}>
+            <div className="flex items-center gap-4">
+              <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${resultStyles[result.type].iconBg}`}>
                 {result.type === "success" ? (
-                  <svg className={`w-5 h-5 ${resultStyles[result.type].icon}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                  <svg className={`w-6 h-6 ${resultStyles[result.type].icon}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
                   </svg>
                 ) : result.type === "warning" ? (
@@ -184,10 +215,15 @@ export default function ScanPage() {
                   </svg>
                 )}
               </div>
-              <div>
-                {result.name && <p className="font-semibold text-[#0a0a0a] text-base mb-0.5">{result.name}</p>}
-                <p className={`text-sm ${resultStyles[result.type].text}`}>{result.message}</p>
+              <div className="flex-1 min-w-0">
+                {result.name && <p className={`font-bold ${result.type === "success" ? "text-lg" : "text-base"} mb-0.5 ${resultStyles[result.type].name}`}>{result.name}</p>}
+                <p className={`${result.type === "success" ? "text-base font-medium" : "text-sm"} ${resultStyles[result.type].text}`}>{result.message}</p>
               </div>
+              {countdown > 0 && (
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${result.type === "success" ? "bg-white/20" : "bg-black/5"}`}>
+                  <span className={`text-sm font-bold tabular-nums ${result.type === "success" ? "text-white" : resultStyles[result.type].text}`}>{countdown}</span>
+                </div>
+              )}
             </div>
           </div>
         )}
