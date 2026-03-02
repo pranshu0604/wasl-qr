@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 
 export default function AdminLoginPage() {
   const router = useRouter();
+  const [email, setEmail] = useState("");
   const [secret, setSecret] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -18,16 +19,15 @@ export default function AdminLoginPage() {
       const res = await fetch("/api/auth", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ secret }),
+        body: JSON.stringify({ email, secret }),
       });
 
       const data = await res.json();
 
       if (res.ok && data.ok) {
-        // Cookie is set server-side by the API, just redirect
         window.location.href = "/admin";
       } else {
-        setError(data.error || "Invalid admin password. Please try again.");
+        setError(data.error || "Invalid email or password. Please try again.");
       }
     } catch {
       setError("Something went wrong. Please try again.");
@@ -45,14 +45,30 @@ export default function AdminLoginPage() {
               Admin Access
             </h1>
             <p className="text-charcoal-400 text-sm mt-2">
-              Enter the admin password to continue
+              Sign in with your admin credentials
             </p>
           </div>
 
           <form onSubmit={handleSubmit} className="p-8 space-y-5">
             <div>
               <label className="block text-xs font-medium text-charcoal-600 tracking-wider uppercase mb-2">
-                Admin Password
+                Email
+              </label>
+              <input
+                type="email"
+                required
+                autoComplete="email"
+                value={email}
+                onChange={(e) => { setEmail(e.target.value); setError(""); }}
+                placeholder="you@wasl.ae"
+                className="input-luxury"
+                autoFocus
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-medium text-charcoal-600 tracking-wider uppercase mb-2">
+                Password
               </label>
               <input
                 type="password"
@@ -62,7 +78,6 @@ export default function AdminLoginPage() {
                 onChange={(e) => { setSecret(e.target.value); setError(""); }}
                 placeholder="Enter password"
                 className="input-luxury"
-                autoFocus
               />
             </div>
 
@@ -77,7 +92,7 @@ export default function AdminLoginPage() {
               disabled={loading}
               className="btn-primary w-full text-center"
             >
-              {loading ? "Verifying..." : "Enter Admin Panel"}
+              {loading ? "Signing in..." : "Sign In"}
             </button>
           </form>
         </div>

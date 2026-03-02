@@ -243,9 +243,10 @@ class ExcelStore {
   private emailIndex: Map<string, string> = new Map(); // email → id
   private qrIndex: Map<string, string> = new Map(); // qrToken → id
   private lastLoad = 0;
-  private ttl = 30_000; // 30 seconds
+  private ttl = 10_000; // 10 seconds — shorter for event-time concurrency
   private loading: Promise<void> | null = null;
-  private writeLock = false;
+  private writeQueue: Promise<void> = Promise.resolve();
+  private checkinLocks: Set<string> = new Set(); // prevent double check-in races
 
   // ---- Cache management ----
 
@@ -303,30 +304,31 @@ class ExcelStore {
   }
 
   private async saveToExcel(): Promise<void> {
-    // Simple lock to prevent concurrent uploads
-    if (this.writeLock) return;
-    this.writeLock = true;
-    try {
-      const workbook = new ExcelJS.Workbook();
-      const sheet = workbook.addWorksheet("Attendees");
+    // Queue writes so they run sequentially — no skipped saves
+    this.writeQueue = this.writeQueue.then(() => this.doSave()).catch((err) => {
+      console.error("Excel save failed:", err);
+    });
+    return this.writeQueue;
+  }
 
-      // Header row
-      sheet.addRow(COLUMNS.map((c) => c));
+  private async doSave(): Promise<void> {
+    const workbook = new ExcelJS.Workbook();
+    const sheet = workbook.addWorksheet("Attendees");
 
-      // Data rows sorted by createdAt desc
-      const sorted = [...this.cache.values()].sort(
-        (a, b) => b.createdAt.getTime() - a.createdAt.getTime()
-      );
-      for (const a of sorted) {
-        sheet.addRow(attendeeToRow(a));
-      }
+    // Header row
+    sheet.addRow(COLUMNS.map((c) => c));
 
-      const arrayBuffer = await workbook.xlsx.writeBuffer();
-      await uploadExcel(arrayBuffer);
-      this.lastLoad = Date.now();
-    } finally {
-      this.writeLock = false;
+    // Data rows sorted by createdAt desc
+    const sorted = [...this.cache.values()].sort(
+      (a, b) => b.createdAt.getTime() - a.createdAt.getTime()
+    );
+    for (const a of sorted) {
+      sheet.addRow(attendeeToRow(a));
     }
+
+    const arrayBuffer = await workbook.xlsx.writeBuffer();
+    await uploadExcel(arrayBuffer);
+    this.lastLoad = Date.now();
   }
 
   // ---- Public API ----
@@ -456,6 +458,44 @@ class ExcelStore {
     this.cache.set(id, updated);
     await this.saveToExcel();
     return updated;
+  }
+
+  async checkin(qrToken: string): Promise<{ attendee: Attendee; alreadyCheckedIn: boolean }> {
+    await this.ensureLoaded();
+    const id = this.qrIndex.get(qrToken);
+    if (!id) throw new Error("NOT_FOUND");
+
+    const attendee = this.cache.get(id);
+    if (!attendee) throw new Error("NOT_FOUND");
+
+    if (attendee.checkedIn) {
+      return { attendee, alreadyCheckedIn: true };
+    }
+
+    // Prevent race: if another request is already checking in this token, treat as duplicate
+    if (this.checkinLocks.has(qrToken)) {
+      return { attendee, alreadyCheckedIn: true };
+    }
+
+    this.checkinLocks.add(qrToken);
+    try {
+      // Re-check after acquiring lock (another request may have completed)
+      if (attendee.checkedIn) {
+        return { attendee, alreadyCheckedIn: true };
+      }
+
+      const updated: Attendee = {
+        ...attendee,
+        checkedIn: true,
+        checkedInAt: new Date(),
+        updatedAt: new Date(),
+      };
+      this.cache.set(id, updated);
+      await this.saveToExcel();
+      return { attendee: updated, alreadyCheckedIn: false };
+    } finally {
+      this.checkinLocks.delete(qrToken);
+    }
   }
 
   async upsert(

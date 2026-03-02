@@ -12,16 +12,22 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const attendee = await db.findByQrToken(qrToken);
-
-    if (!attendee) {
-      return NextResponse.json(
-        { found: false, error: "Visitor not found. Please use manual entry." },
-        { status: 404 }
-      );
+    let result;
+    try {
+      result = await db.checkin(qrToken);
+    } catch (err) {
+      if (err instanceof Error && err.message === "NOT_FOUND") {
+        return NextResponse.json(
+          { found: false, error: "Visitor not found. Please use manual entry." },
+          { status: 404 }
+        );
+      }
+      throw err;
     }
 
-    if (attendee.checkedIn) {
+    const { attendee, alreadyCheckedIn } = result;
+
+    if (alreadyCheckedIn) {
       return NextResponse.json({
         found: true,
         alreadyCheckedIn: true,
@@ -36,23 +42,18 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    const updated = await db.update(attendee.id, {
-      checkedIn: true,
-      checkedInAt: new Date(),
-    });
-
     return NextResponse.json({
       found: true,
       alreadyCheckedIn: false,
       attendee: {
-        id: updated!.id,
-        firstName: updated!.firstName,
-        lastName: updated!.lastName,
-        email: updated!.email,
-        company: updated!.company,
-        designation: updated!.designation,
+        id: attendee.id,
+        firstName: attendee.firstName,
+        lastName: attendee.lastName,
+        email: attendee.email,
+        company: attendee.company,
+        designation: attendee.designation,
       },
-      message: `Welcome, ${updated!.firstName} ${updated!.lastName}!`,
+      message: `Welcome, ${attendee.firstName} ${attendee.lastName}!`,
     });
   } catch (error) {
     console.error("Check-in error:", error);

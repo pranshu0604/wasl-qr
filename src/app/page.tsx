@@ -157,10 +157,6 @@ export default function LandingPage() {
                     "Register"
                   )}
                 </button>
-
-                <p className="text-center text-[#1a1a1a] text-xs mt-2">
-                  Your <strong>QR</strong> pass will be emailed to you upon registration.
-                </p>
               </form>
             </div>
 

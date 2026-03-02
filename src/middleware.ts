@@ -1,13 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifySessionToken } from "@/lib/session";
 
-// Fail closed: if ADMIN_SECRETS is not set, no password is valid.
-// Never falls back to hardcoded defaults — misconfiguration means no access.
+// Fail closed: if ADMIN_CREDENTIALS is not set, no password is valid.
+// Collect all valid passwords from "email:password" pairs for session verification.
 const ADMIN_PASSWORDS = new Set(
-  (process.env.ADMIN_SECRETS ?? "")
+  (process.env.ADMIN_CREDENTIALS ?? "")
     .split(",")
-    .map((p) => p.trim())
+    .map((pair) => pair.trim())
     .filter(Boolean)
+    .map((pair) => {
+      const idx = pair.indexOf(":");
+      return idx === -1 ? null : pair.slice(idx + 1);
+    })
+    .filter((v): v is string => v !== null)
 );
 
 async function isValidAdminSession(req: NextRequest): Promise<boolean> {
@@ -31,12 +36,12 @@ async function isValidAdminSession(req: NextRequest): Promise<boolean> {
 
 const PROTECTED_API_ROUTES = [
   "/api/attendees",
+  "/api/attendee",
   "/api/checkin",
   "/api/import",
   "/api/manual-entry",
   "/api/resend-qr",
   "/api/toggle-checkin",
-  "/api/self-checkin",
 ];
 
 export async function middleware(req: NextRequest) {
@@ -63,11 +68,11 @@ export const config = {
   matcher: [
     "/admin/:path*",
     "/api/attendees/:path*",
+    "/api/attendee/:path*",
     "/api/checkin/:path*",
     "/api/import/:path*",
     "/api/manual-entry/:path*",
     "/api/resend-qr",
     "/api/toggle-checkin",
-    "/api/self-checkin",
   ],
 };
