@@ -4,22 +4,35 @@
 import { useEffect, useRef } from "react";
 import { Html5Qrcode } from "html5-qrcode";
 
+// Module-level promise that tracks the previous scanner's cleanup.
+// Prevents race conditions when stop → start happens quickly.
+let cleanupPromise: Promise<void> = Promise.resolve();
+
 interface Props {
   onScan: (decodedText: string) => Promise<void>;
   onError: (message: string) => void;
 }
 
 export default function QRScanner({ onScan, onError }: Props) {
-  // Stable refs — keeps effect deps empty so scanner only starts/stops on mount/unmount
   const onScanRef = useRef(onScan);
   const onErrorRef = useRef(onError);
   onScanRef.current = onScan;
   onErrorRef.current = onError;
 
   useEffect(() => {
+    let cancelled = false;
     let scanner: Html5Qrcode | null = null;
 
     (async () => {
+      // Wait for any previous scanner to fully stop before starting a new one
+      await cleanupPromise;
+      if (cancelled) return;
+
+      // Clear leftover DOM children from previous scanner instance
+      const container = document.getElementById("qr-reader");
+      if (container) container.innerHTML = "";
+      if (cancelled) return;
+
       try {
         scanner = new Html5Qrcode("qr-reader");
         await scanner.start(
@@ -29,6 +42,7 @@ export default function QRScanner({ onScan, onError }: Props) {
           () => {} // ignore per-frame decode failures
         );
       } catch (err: unknown) {
+        if (cancelled) return;
         const msg = err instanceof Error ? err.message : String(err);
         const lower = msg.toLowerCase();
         if (lower.includes("permission") || lower.includes("denied") || lower.includes("notallowed")) {
@@ -43,19 +57,25 @@ export default function QRScanner({ onScan, onError }: Props) {
     })();
 
     return () => {
+      cancelled = true;
       if (scanner) {
         const s = scanner;
         scanner = null;
-        const state = s.getState();
-        // Only stop if actually scanning or paused (state 2 or 3)
-        if (state === 2 || state === 3) {
-          s.stop().catch(() => {}).finally(() => { try { s.clear(); } catch {} });
-        } else {
+        // Store the cleanup promise so the next mount waits for it
+        cleanupPromise = (async () => {
+          try {
+            const state = s.getState();
+            if (state === 2 || state === 3) {
+              await s.stop();
+            }
+          } catch {
+            // ignore stop errors
+          }
           try { s.clear(); } catch {}
-        }
+        })();
       }
     };
-  }, []); // empty — mount starts scanner, unmount stops it
+  }, []);
 
   return null;
 }
