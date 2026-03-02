@@ -142,12 +142,8 @@ export default function ScanPage() {
       <div className="bg-white rounded-2xl border border-[#e8e2d5] overflow-hidden">
         <div className="p-4 sm:p-6">
 
-          {/* Camera viewport — QRScanner mounts here on start */}
-          <div
-            id="qr-reader"
-            className="w-full aspect-square bg-[#0a0a0a] rounded-xl overflow-hidden relative"
-          >
-            {/* QRScanner dynamically imported with ssr:false — only mounts when scanning=true */}
+          {/* Camera viewport */}
+          <div className="w-full aspect-square bg-[#0a0a0a] rounded-xl overflow-hidden relative">
             {scanning && (
               <QRScanner onScan={handleScan} onError={handleScannerError} />
             )}
