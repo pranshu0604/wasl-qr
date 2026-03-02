@@ -16,14 +16,20 @@ const ADMIN_PASSWORDS = new Set(
 );
 
 async function isValidAdminSession(req: NextRequest): Promise<boolean> {
+  console.log("[MW] Checking session. ADMIN_PASSWORDS size:", ADMIN_PASSWORDS.size);
+  console.log("[MW] SESSION_SECRET set:", !!process.env.SESSION_SECRET);
+
   // Browser sessions: verify the HMAC-signed cookie (never stores raw password)
   const cookie = req.cookies.get("admin_session")?.value;
+  console.log("[MW] Cookie present:", !!cookie, cookie ? `(length: ${cookie.length})` : "");
   if (cookie) {
     try {
       const secret = await verifySessionToken(cookie);
+      console.log("[MW] Token verified, secret:", secret ? `"${secret.slice(0, 3)}..."` : "null");
+      console.log("[MW] Password in set:", secret ? ADMIN_PASSWORDS.has(secret) : false);
       if (secret && ADMIN_PASSWORDS.has(secret)) return true;
-    } catch {
-      // SESSION_SECRET not configured or token tampered — deny
+    } catch (err) {
+      console.error("[MW] Token verify error:", err instanceof Error ? err.message : err);
     }
   }
 
