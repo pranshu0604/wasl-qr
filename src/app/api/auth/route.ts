@@ -46,7 +46,7 @@ export async function POST(req: NextRequest) {
     if (expectedPassword && typeof secret === "string" && secret === expectedPassword) {
       console.log("[AUTH] Credentials valid, creating session token...");
       const sessionToken = await createSessionToken(expectedPassword);
-      console.log("[AUTH] Session token created successfully");
+      console.log("[AUTH] Session token created, length:", sessionToken.length);
       const res = NextResponse.json({ ok: true });
       res.cookies.set("admin_session", sessionToken, {
         path: "/",

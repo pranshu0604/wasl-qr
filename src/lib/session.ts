@@ -1,5 +1,5 @@
 // Uses Web Crypto API only — compatible with both Edge Runtime and Node.js (>=18).
-// Do NOT import Node.js "crypto" here; use the global `crypto.subtle` instead.
+// Uses TextEncoder/TextDecoder for base64 encoding — consistent across all runtimes.
 
 function getSecret(): string {
   const s = process.env.SESSION_SECRET;
@@ -8,7 +8,12 @@ function getSecret(): string {
 }
 
 function toBase64url(buffer: ArrayBuffer): string {
-  return btoa(String.fromCharCode(...new Uint8Array(buffer)))
+  const bytes = new Uint8Array(buffer);
+  let binary = "";
+  for (let i = 0; i < bytes.length; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  return btoa(binary)
     .replace(/\+/g, "-")
     .replace(/\//g, "_")
     .replace(/=+$/, "");
@@ -23,6 +28,16 @@ function fromBase64url(str: string): ArrayBuffer {
   return bytes.buffer as ArrayBuffer;
 }
 
+// Encode a UTF-8 string to base64url using TextEncoder (works in Edge + Node)
+function stringToBase64url(str: string): string {
+  return toBase64url(new TextEncoder().encode(str).buffer as ArrayBuffer);
+}
+
+// Decode a base64url string back to UTF-8 using TextDecoder (works in Edge + Node)
+function base64urlToString(b64: string): string {
+  return new TextDecoder().decode(fromBase64url(b64));
+}
+
 async function getHmacKey(secret: string): Promise<CryptoKey> {
   return crypto.subtle.importKey(
     "raw",
@@ -35,15 +50,13 @@ async function getHmacKey(secret: string): Promise<CryptoKey> {
 
 /**
  * Creates an HMAC-signed session token encoding the admin secret.
- * Format: base64url(adminSecret):timestamp.hmac_sig
+ * Format: base64url(adminSecret).timestamp.hmac_sig
+ * Uses "." as separator throughout (no ":" which can conflict with base64).
  */
 export async function createSessionToken(adminSecret: string): Promise<string> {
   const secret = getSecret();
-  const encodedSecret = btoa(adminSecret)
-    .replace(/\+/g, "-")
-    .replace(/\//g, "_")
-    .replace(/=+$/, "");
-  const payload = encodedSecret + ":" + Date.now();
+  const encodedSecret = stringToBase64url(adminSecret);
+  const payload = encodedSecret + "." + Date.now();
   const key = await getHmacKey(secret);
   const sigBuffer = await crypto.subtle.sign(
     "HMAC",
@@ -60,6 +73,8 @@ export async function createSessionToken(adminSecret: string): Promise<string> {
 export async function verifySessionToken(token: string): Promise<string | null> {
   try {
     const secret = getSecret();
+    // Token format: encodedSecret.timestamp.signature
+    // Find the last "." to split off the signature
     const lastDot = token.lastIndexOf(".");
     if (lastDot === -1) return null;
     const payload = token.slice(0, lastDot);
@@ -72,14 +87,12 @@ export async function verifySessionToken(token: string): Promise<string | null> 
       new TextEncoder().encode(payload)
     );
     if (!valid) return null;
-    const colonIdx = payload.indexOf(":");
-    if (colonIdx === -1) return null;
-    const encodedSecret = payload.slice(0, colonIdx);
-    const base64 = encodedSecret.replace(/-/g, "+").replace(/_/g, "/");
-    const padded = base64 + "=".repeat((4 - (base64.length % 4)) % 4);
-    return atob(padded);
+    // Split payload into encodedSecret and timestamp
+    const dotIdx = payload.indexOf(".");
+    if (dotIdx === -1) return null;
+    const encodedSecret = payload.slice(0, dotIdx);
+    return base64urlToString(encodedSecret);
   } catch {
     return null;
   }
 }
-
