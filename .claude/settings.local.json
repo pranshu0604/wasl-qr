@@ -25,7 +25,8 @@
       "Bash(npx next build)",
       "Bash(npm uninstall @prisma/client prisma)",
       "Bash(npm uninstall nodemailer @types/nodemailer)",
-      "Bash(npm run build)"
+      "Bash(npm run build)",
+      "Bash(npx tsx --eval \"import ''./scripts/import-excel.ts''\")"
     ]
   }
 }
