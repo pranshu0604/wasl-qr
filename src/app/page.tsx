@@ -23,8 +23,9 @@ export default function LandingPage() {
     setLoading(true);
     setError("");
 
-    if (!form.email.toLowerCase().trim().endsWith("@wasl.ae")) {
-      setError("Registration is restricted to @wasl.ae email addresses.");
+    const allowedDomains = ["@wasl.ae", "@drec.gov.ae", "@dubaigolf.ae", "@viya.ae"];
+    if (!allowedDomains.some((d) => form.email.toLowerCase().trim().endsWith(d))) {
+      setError("Registration is restricted to @wasl.ae, @drec.gov.ae, @dubaigolf.ae, and @viya.ae email addresses.");
       setLoading(false);
       return;
     }

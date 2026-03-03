@@ -44,7 +44,7 @@ export async function POST(req: NextRequest) {
         }
 
         if (!isWaslEmail(email)) {
-          errors.push(`Skipped: Non-wasl.ae email ${email}`);
+          errors.push(`Skipped: Email not from allowed domain ${email}`);
           skipped++;
           continue;
         }
