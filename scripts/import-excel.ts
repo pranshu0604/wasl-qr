@@ -178,7 +178,7 @@ async function uploadExcel(data: Buffer): Promise<void> {
         Authorization: `Bearer ${token}`,
         "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
       },
-      body: data,
+      body: new Uint8Array(data),
     }
   );
   if (!res.ok) throw new Error(`Upload failed: ${res.status}`);
